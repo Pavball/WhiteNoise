@@ -3,7 +3,6 @@ package pavball.hr.whitenoise.ui.screens.home
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
@@ -43,7 +42,8 @@ fun HomeScreen(modifier: Modifier = Modifier, navController: NavController) {
     val whiteNoiseOptions = listOf(
         "Sound Helix" to  "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
         "Paza" to "http://codeskulptor-demos.commondatastorage.googleapis.com/pang/paza-moduless.mp3",
-        "Thrust" to "http://commondatastorage.googleapis.com/codeskulptor-assets/sounddogs/thrust.mp3",
+        "Background Music" to "http://commondatastorage.googleapis.com/codeskulptor-assets/sounddogs/thrust.mp3",
+        "Thrust" to "http://codeskulptor-demos.commondatastorage.googleapis.com/descent/background%20music.mp3"
     )
 
     var selectedNoise by remember { mutableStateOf(whiteNoiseOptions[0]) }
@@ -87,8 +87,6 @@ fun HomeScreen(modifier: Modifier = Modifier, navController: NavController) {
                 }
             }
         }
-
-
 
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             IconButton(
