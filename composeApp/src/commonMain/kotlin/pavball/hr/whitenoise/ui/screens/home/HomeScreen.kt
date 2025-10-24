@@ -1,14 +1,13 @@
 package pavball.hr.whitenoise.ui.screens.home
 
-import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
@@ -39,14 +38,18 @@ fun HomeScreen(modifier: Modifier = Modifier, navController: NavController) {
     var pause by remember { mutableStateOf(false) }
     var stop by remember { mutableStateOf(false) }
 
+// Get isLoading state from MediaPlayerComponent
+    var isLoading by remember { mutableStateOf(true) }
+
     val whiteNoiseOptions = listOf(
-        "Sound Helix" to  "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
-        "Paza" to "http://codeskulptor-demos.commondatastorage.googleapis.com/pang/paza-moduless.mp3",
-        "Background Music" to "http://commondatastorage.googleapis.com/codeskulptor-assets/sounddogs/thrust.mp3",
-        "Thrust" to "http://codeskulptor-demos.commondatastorage.googleapis.com/descent/background%20music.mp3"
+        "Sound Helix" to "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
+        "Paza" to "https://codeskulptor-demos.commondatastorage.googleapis.com/pang/paza-moduless.mp3",
+        "Thrust" to "https://commondatastorage.googleapis.com/codeskulptor-assets/sounddogs/thrust.mp3",
+        "Background Music" to "https://codeskulptor-demos.commondatastorage.googleapis.com/descent/background%20music.mp3"
     )
 
     var selectedNoise by remember { mutableStateOf(whiteNoiseOptions[0]) }
+    var expanded by remember { mutableStateOf(false) }
 
     Column(
         modifier = modifier
@@ -55,22 +58,14 @@ fun HomeScreen(modifier: Modifier = Modifier, navController: NavController) {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        var expanded by remember { mutableStateOf(false) }
-
         Button(
-            modifier = modifier
+            modifier = Modifier
                 .fillMaxWidth()
-                .padding(start = 24.dp, end = 24.dp),
+                .padding(horizontal = 24.dp),
             onClick = { expanded = !expanded },
             colors = ButtonDefaults.buttonColors(containerColor = Color.Blue.copy(alpha = 0.5f))
         ) {
-            Text(
-                text = selectedNoise.first,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(8.dp)
-                    .clickable { expanded = true }
-            )
+            Text(selectedNoise.first)
             DropdownMenu(
                 expanded = expanded,
                 onDismissRequest = { expanded = false }
@@ -79,14 +74,21 @@ fun HomeScreen(modifier: Modifier = Modifier, navController: NavController) {
                     DropdownMenuItem(
                         text = { Text(option.first) },
                         onClick = {
-                            selectedNoise = option
+                            println("MEDIA PLAYER COMPONENT - CHANGING LINK")
+                            if (selectedNoise.second != option.second) {
+                                selectedNoise = option
+                                stop = true
+                                start = false
+                                pause = false
+                            }
                             expanded = false
-                            stop = true // stop previous playback when switching
                         }
                     )
                 }
             }
         }
+
+        Spacer(Modifier.height(16.dp))
 
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             IconButton(
@@ -95,16 +97,12 @@ fun HomeScreen(modifier: Modifier = Modifier, navController: NavController) {
                     pause = false
                     stop = false
                 },
-                modifier = modifier.background(Color.Transparent),
-                enabled = true,
+                enabled = !isLoading
             ) {
                 Icon(
-                    painter = painterResource(
-                        resource = Res.drawable.ic_play
-                    ),
+                    painter = painterResource(Res.drawable.ic_play),
                     contentDescription = "Play",
-                    tint = Color.Blue.copy(alpha = 1f),
-                    modifier = modifier.size(24.dp)
+                    tint = if (isLoading) Color.Gray else Color.Blue
                 )
             }
 
@@ -114,16 +112,12 @@ fun HomeScreen(modifier: Modifier = Modifier, navController: NavController) {
                     start = false
                     stop = false
                 },
-                modifier = modifier.background(Color.Transparent),
-                enabled = true,
+                enabled = !isLoading
             ) {
                 Icon(
-                    painter = painterResource(
-                        resource = Res.drawable.ic_pause
-                    ),
+                    painter = painterResource(Res.drawable.ic_pause),
                     contentDescription = "Pause",
-                    tint = Color.Blue.copy(alpha = 1f),
-                    modifier = modifier.size(24.dp)
+                    tint = if (isLoading) Color.Gray else Color.Blue
                 )
             }
 
@@ -133,26 +127,29 @@ fun HomeScreen(modifier: Modifier = Modifier, navController: NavController) {
                     start = false
                     pause = false
                 },
-                modifier = modifier.background(Color.Transparent),
-                enabled = true,
+                enabled = !isLoading
             ) {
                 Icon(
-                    painter = painterResource(
-                        resource = Res.drawable.ic_stop
-                    ),
+                    painter = painterResource(Res.drawable.ic_stop),
                     contentDescription = "Stop",
-                    tint = Color.Blue.copy(alpha = 1f),
-                    modifier = modifier.size(24.dp)
+                    tint = if (isLoading) Color.Gray else Color.Blue
                 )
             }
         }
+
+        Spacer(Modifier.height(16.dp))
 
         MediaPlayerComponent(
             modifier = Modifier.fillMaxWidth(),
             url = selectedNoise.second,
             start = start,
             pause = pause,
-            stop = stop
+            stop = stop,
+            onLoadingChanged = { isLoading = it }
         )
+
+        println("MEDIA PLAYER COMPONENT -----------------------------------------------------------------------------")
+
     }
 }
+
