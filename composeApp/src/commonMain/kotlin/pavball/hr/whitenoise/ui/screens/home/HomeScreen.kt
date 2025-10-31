@@ -41,14 +41,13 @@ fun HomeScreen(modifier: Modifier = Modifier, navController: NavController) {
 // Get isLoading state from MediaPlayerComponent
     var isLoading by remember { mutableStateOf(true) }
 
-    val whiteNoiseOptions = listOf(
-        "Sound Helix" to "https://www.soundhelix.com/examples/mp3/SoundHelix-Song-1.mp3",
-        "Paza" to "https://codeskulptor-demos.commondatastorage.googleapis.com/pang/paza-moduless.mp3",
-        "Thrust" to "https://commondatastorage.googleapis.com/codeskulptor-assets/sounddogs/thrust.mp3",
-        "Background Music" to "https://codeskulptor-demos.commondatastorage.googleapis.com/descent/background%20music.mp3"
+    val sounds = listOf(
+        "Rain" to "rain",
+        "Ocean Waves" to "ocean",
+        "Forest Ambience" to "forest"
     )
 
-    var selectedNoise by remember { mutableStateOf(whiteNoiseOptions[0]) }
+    var selectedSound by remember { mutableStateOf(sounds.first()) }
     var expanded by remember { mutableStateOf(false) }
 
     Column(
@@ -65,23 +64,18 @@ fun HomeScreen(modifier: Modifier = Modifier, navController: NavController) {
             onClick = { expanded = !expanded },
             colors = ButtonDefaults.buttonColors(containerColor = Color.Blue.copy(alpha = 0.5f))
         ) {
-            Text(selectedNoise.first)
-            DropdownMenu(
-                expanded = expanded,
-                onDismissRequest = { expanded = false }
-            ) {
-                whiteNoiseOptions.forEach { option ->
+            Text(selectedSound.first)
+            DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                sounds.forEach { (label, resId) ->
                     DropdownMenuItem(
-                        text = { Text(option.first) },
+                        text = { Text(label) },
                         onClick = {
-                            println("MEDIA PLAYER COMPONENT - CHANGING LINK")
-                            if (selectedNoise.second != option.second) {
-                                selectedNoise = option
-                                stop = true
-                                start = false
-                                pause = false
-                            }
                             expanded = false
+                            selectedSound = label to resId
+                            // Auto-play new sound
+                            start = true
+                            pause = false
+                            stop = false
                         }
                     )
                 }
@@ -141,14 +135,11 @@ fun HomeScreen(modifier: Modifier = Modifier, navController: NavController) {
 
         MediaPlayerComponent(
             modifier = Modifier.fillMaxWidth(),
-            url = selectedNoise.second,
+            resId = selectedSound.second,
             start = start,
             pause = pause,
-            stop = stop,
-            onLoadingChanged = { isLoading = it }
+            stop = stop
         )
-
-        println("MEDIA PLAYER COMPONENT -----------------------------------------------------------------------------")
 
     }
 }
