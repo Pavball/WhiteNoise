@@ -138,7 +138,10 @@ fun HomeScreen(modifier: Modifier = Modifier, navController: NavController) {
             resId = selectedSound.second,
             start = start,
             pause = pause,
-            stop = stop
+            stop = stop,
+            isLoading = {
+                isLoading = it
+            }
         )
 
     }

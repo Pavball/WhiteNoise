@@ -11,6 +11,7 @@ import androidx.media3.common.MediaItem
 import androidx.media3.exoplayer.ExoPlayer
 import pavball.hr.whitenoise.R // access to res/raw
 import kotlinx.coroutines.delay
+import androidx.core.net.toUri
 
 @Composable
 actual fun MediaPlayerComponent(
@@ -18,7 +19,8 @@ actual fun MediaPlayerComponent(
     resId: String,
     start: Boolean,
     pause: Boolean,
-    stop: Boolean
+    stop: Boolean,
+    isLoading: (Boolean) -> Unit
 ) {
     val context = LocalContext.current
     val exoPlayer = remember { ExoPlayer.Builder(context).build() }
@@ -26,7 +28,7 @@ actual fun MediaPlayerComponent(
     var duration by remember { mutableStateOf(0L) }
     var currentPosition by remember { mutableStateOf(0L) }
 
-// 🔹 Map resource keys to actual res/raw IDs
+//  Map resource keys to actual res/raw IDs
     val resourceMap = mapOf(
         "rain" to R.raw.rain,
         "ocean" to R.raw.ocean_waves,
@@ -37,14 +39,19 @@ actual fun MediaPlayerComponent(
 
 // --- Load sound when changed ---
     LaunchedEffect(resolvedResId) {
-        val uri = Uri.parse("android.resource://${context.packageName}/$resolvedResId")
+        isLoading(true)
+
+        val uri = "android.resource://${context.packageName}/$resolvedResId".toUri()
         val mediaItem = MediaItem.fromUri(uri)
+
         exoPlayer.setMediaItem(mediaItem)
         exoPlayer.prepare()
         exoPlayer.repeatMode = ExoPlayer.REPEAT_MODE_ONE // optional looping
 
+        isLoading(false)
+
         delay(300)
-        duration = exoPlayer.duration.takeIf { it > 0 } ?: 1L
+        duration = exoPlayer.duration.takeIf { it > 0L } ?: 1L
     }
 
 // --- Playback handling ---

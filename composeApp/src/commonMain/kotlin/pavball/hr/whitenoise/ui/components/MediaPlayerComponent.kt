@@ -9,5 +9,6 @@ expect fun MediaPlayerComponent(
     resId: String,
     start: Boolean,
     pause: Boolean,
-    stop: Boolean
+    stop: Boolean,
+    isLoading: (Boolean) -> Unit
 )

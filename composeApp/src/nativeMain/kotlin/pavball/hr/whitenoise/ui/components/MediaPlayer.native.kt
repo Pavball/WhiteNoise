@@ -1,10 +1,7 @@
 package pavball.hr.whitenoise.ui.components
 
-import AvPlayerView
-import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
-import isAudioFile
 
 @Composable
 actual fun MediaPlayerComponent(
@@ -13,6 +10,7 @@ actual fun MediaPlayerComponent(
     start: Boolean,
     pause: Boolean,
     stop: Boolean,
+    isLoading: (Boolean) -> Unit
 ) {
 
 
