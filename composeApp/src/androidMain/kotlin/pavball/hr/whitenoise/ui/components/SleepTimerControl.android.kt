@@ -5,115 +5,73 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.delay
-import kotlin.time.Clock
-import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.Duration.Companion.seconds
+import kotlinx.coroutines.flow.collectLatest
+import org.koin.androidx.compose.koinViewModel
+import pavball.hr.whitenoise.ui.viewmodels.MainScreenViewModel
+import pavball.hr.whitenoise.ui.viewmodels.MainScreenViewState
+import pavball.hr.whitenoise.viewmodels.MainScreenViewModelImpl
 import kotlin.time.ExperimentalTime
-import kotlin.time.Instant
 
 @OptIn(ExperimentalTime::class)
 @Composable
 actual fun SleepTimerControl(
     isPlaying: Boolean,
-    onTimerFinished: () -> Unit,
-    onFadeStart: () -> Unit
+    onFadeStart: () -> Unit,
+    onTimerFinished: () -> Unit
 ) {
-    val timerOptions = listOf(5, 10, 15)
 
-    var selectedMinutes by remember { mutableStateOf<Int?>(null) }
-    var remainingTime by remember { mutableStateOf(0L) }
-    var isRunning by remember { mutableStateOf(false) }
-    var fadeOutEnabled by remember { mutableStateOf(true) }
-    var fadeStarted by remember { mutableStateOf(false) }
 
-    var endTime by remember { mutableStateOf<Instant?>(null) }
+    val sleepTimerViewModel = koinViewModel<MainScreenViewModel>()
+    var state by sleepTimerViewModel.viewState<MainScreenViewState>()
+        .collectAsState(initial = MainScreenViewState.Initial)
 
-    LaunchedEffect(isPlaying, selectedMinutes) {
-        if (selectedMinutes != null) {
-            if (isPlaying && !isRunning && remainingTime > 0) {
-                // Resume timer from remaining time
-                endTime = Clock.System.now().plus(remainingTime.milliseconds)
-                isRunning = true
-            } else if (isPlaying && !isRunning && remainingTime == 0L) {
-                // Fresh start
-                val minutes = selectedMinutes!!
-                remainingTime = (minutes * 60 * 1000).toLong()
-                endTime = Clock.System.now().plus(remainingTime.milliseconds)
-                fadeStarted = false
-                isRunning = true
-            } else if (!isPlaying && isRunning) {
-                // Pause timer — don’t reset, just stop counting
-                isRunning = false
-                endTime = null
-            }
+    var fadeEnabled by remember { mutableStateOf(true) }
 
-            while (isRunning && isPlaying && remainingTime > 0) {
-                delay(1.seconds)
-                val now = kotlin.time.Clock.System.now()
-                val remaining = endTime?.let { it - now } ?: continue
-                remainingTime = remaining.inWholeMilliseconds.coerceAtLeast(0)
+    LaunchedEffect(Unit) {
+        sleepTimerViewModel.viewState<MainScreenViewState>().collectLatest { state = it }
+    }
 
-                if (fadeOutEnabled && !fadeStarted && remainingTime <= 30_000L) {
-                    fadeStarted = true
-                    onFadeStart()
-                }
-            }
-
-            if (remainingTime == 0L && isRunning) {
-                isRunning = false
-                onTimerFinished()
-            }
+    LaunchedEffect(isPlaying) {
+        if (!isPlaying && state is MainScreenViewState.TimerRunning) {
+            sleepTimerViewModel.pauseTimer()
+        } else if (isPlaying && state is MainScreenViewState.TimerPaused) {
+            sleepTimerViewModel.resumeTimer(onFadeStart, onTimerFinished)
         }
     }
 
     Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-        Text("Sleep Timer")
+        Text("Sleep Timer", style = MaterialTheme.typography.titleMedium)
 
         Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            timerOptions.forEach { minutes ->
-                Button(
-                    onClick = {
-                        selectedMinutes = minutes
-                        remainingTime = 0L // reset remaining if new timer chosen
-                        isRunning = false
-                        fadeStarted = false
-                    },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = if (selectedMinutes == minutes)
-                            MaterialTheme.colorScheme.primary
-                        else MaterialTheme.colorScheme.secondaryContainer
-                    )
-                ) {
+            listOf(5, 10, 15).forEach { minutes ->
+                Button(onClick = {
+                    sleepTimerViewModel.startTimer(minutes, fadeEnabled, onFadeStart, onTimerFinished)
+                }) {
                     Text("$minutes min")
                 }
             }
-
-            if (isRunning || selectedMinutes != null) {
-                Button(onClick = {
-                    selectedMinutes = null
-                    isRunning = false
-                    remainingTime = 0L
-                }) {
-                    Text("Cancel")
-                }
-            }
+            Button(onClick = { sleepTimerViewModel.cancelTimer() }) { Text("Cancel") }
         }
 
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Checkbox(
-                checked = fadeOutEnabled,
-                onCheckedChange = { fadeOutEnabled = it }
-            )
+            Checkbox(checked = fadeEnabled, onCheckedChange = { fadeEnabled = it })
             Text("Fade out last 30 seconds")
         }
 
-        if (selectedMinutes != null && remainingTime > 0) {
-            val minutes = (remainingTime / 60000)
-            val seconds = (remainingTime / 1000) % 60
-            Text("Stopping in %02d:%02d".format(minutes, seconds))
-        } else if (selectedMinutes != null && !isRunning) {
-            Text("Timer set: $selectedMinutes min (waiting for playback)")
+        when (val s = state) {
+            is MainScreenViewState.TimerRunning -> {
+                val m = s.remainingTime / 60000
+                val sec = (s.remainingTime / 1000) % 60
+                Text("Stopping in %02d:%02d".format(m, sec))
+            }
+            is MainScreenViewState.TimerPaused -> {
+                val m = s.remainingTime / 60000
+                val sec = (s.remainingTime / 1000) % 60
+                Text("Paused at %02d:%02d".format(m, sec))
+            }
+            MainScreenViewState.TimerFinished -> Text("Timer finished")
+            MainScreenViewState.Initial -> {}
+            is MainScreenViewState.PlayerState -> {}
         }
     }
 }

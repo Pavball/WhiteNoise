@@ -7,8 +7,8 @@ import kotlin.time.ExperimentalTime
 @Composable
 expect fun SleepTimerControl(
     isPlaying: Boolean,
+    onFadeStart: () -> Unit,
     onTimerFinished: () -> Unit,
-    onFadeStart: () -> Unit
 )
 
 

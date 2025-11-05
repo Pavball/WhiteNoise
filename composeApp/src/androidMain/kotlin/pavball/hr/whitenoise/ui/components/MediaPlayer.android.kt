@@ -1,123 +1,70 @@
 package pavball.hr.whitenoise.ui.components
 
-import android.net.Uri
 import androidx.compose.foundation.layout.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.unit.dp
-import androidx.media3.common.MediaItem
-import androidx.media3.exoplayer.ExoPlayer
-import pavball.hr.whitenoise.R // access to res/raw
-import kotlinx.coroutines.delay
-import androidx.core.net.toUri
-import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.launch
+import org.koin.androidx.compose.koinViewModel
+import pavball.hr.whitenoise.ui.viewmodels.MainScreenViewModel
+import pavball.hr.whitenoise.ui.viewmodels.MainScreenViewState
+import pavball.hr.whitenoise.viewmodels.MainScreenViewModelImpl
 
 @Composable
 actual fun MediaPlayerComponent(
     modifier: Modifier,
-    resId: String,
-    start: Boolean,
-    pause: Boolean,
-    stop: Boolean,
-    isLoading: (Boolean) -> Unit
+    onFadeStart: () -> Unit,
+    onTimerFinished: () -> Unit
 ) {
-    val context = LocalContext.current
-    val coroutineScope = rememberCoroutineScope()
-    val exoPlayer = remember { ExoPlayer.Builder(context).build() }
+    val viewModel = koinViewModel<MainScreenViewModelImpl>()
+    val state by viewModel.viewState<MainScreenViewState>()
+        .collectAsState(initial = MainScreenViewState.Initial)
 
-    var duration by remember { mutableStateOf(0L) }
-    var currentPosition by remember { mutableStateOf(0L) }
+// derive playback state
+    val isPlaying = (state as? MainScreenViewState.PlayerState)?.isPlaying ?: false
 
-//  Map resource keys to actual res/raw IDs
-    val resourceMap = mapOf(
-        "rain" to R.raw.rain,
-        "ocean" to R.raw.ocean_waves,
-        "forest" to R.raw.winter_forest
-    )
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
+        Text("White Noise Player", style = MaterialTheme.typography.titleLarge)
+        Spacer(Modifier.height(16.dp))
 
-    val resolvedResId = resourceMap[resId] ?: return
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Button(onClick = { viewModel.playSound("rain") }) { Text("Rain") }
+            Button(onClick = { viewModel.playSound("forest") }) { Text("Forest") }
+            Button(onClick = { viewModel.playSound("ocean") }) { Text("Ocean") }
+        }
 
-// --- Load sound when changed ---
-    LaunchedEffect(resolvedResId) {
-        isLoading(true)
+        Spacer(Modifier.height(16.dp))
 
-        exoPlayer.stop()
-        exoPlayer.clearMediaItems()
-
-        val uri = "android.resource://${context.packageName}/$resolvedResId".toUri()
-        val mediaItem = MediaItem.fromUri(uri)
-
-        exoPlayer.setMediaItem(mediaItem)
-        exoPlayer.prepare()
-        exoPlayer.repeatMode = ExoPlayer.REPEAT_MODE_ONE // optional looping
-
-        isLoading(false)
-
-        delay(300)
-        duration = exoPlayer.duration.takeIf { it > 0L } ?: 1L
-    }
-
-// --- Playback handling ---
-    LaunchedEffect(start, pause, stop) {
-        when {
-            stop -> {
-                exoPlayer.pause()
-                exoPlayer.seekTo(0)
+        Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+            IconButton(onClick = {
+                if (isPlaying) viewModel.pauseSound()
+                else viewModel.playSound((state as? MainScreenViewState.PlayerState)?.currentSound ?: "rain")
+            }) {
+                Icon(
+                    imageVector = if (isPlaying) Icons.Default.Pause else Icons.Default.PlayArrow,
+                    contentDescription = if (isPlaying) "Pause" else "Play"
+                )
             }
-            start -> exoPlayer.play()
-            pause -> exoPlayer.pause()
-        }
-    }
-
-// --- Track progress ---
-    LaunchedEffect(start, pause) {
-        while (start && !pause && exoPlayer.isPlaying) {
-            currentPosition = exoPlayer.currentPosition
-            delay(500)
-        }
-    }
-
-    //TODO() - PREBACITI UI u COMMON MAIN
-// --- UI ---
-    if (duration > 1) {
-        Column(modifier = modifier.padding(16.dp)) {
-            Slider(
-                value = currentPosition.toFloat(),
-                onValueChange = { currentPosition = it.toLong() },
-                onValueChangeFinished = {
-                    exoPlayer.seekTo(currentPosition)
-                },
-                valueRange = 0f..duration.toFloat()
-            )
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Text(formatTime(currentPosition))
-                Text(formatTime(duration))
+            Button(onClick = { viewModel.stopSound() }) {
+                Text("Stop")
             }
         }
-    }
 
-    SleepTimerControl(
-        onFadeStart = {
-            fadeOutVolume(exoPlayer, coroutineScope)
-        },
-        onTimerFinished = {
-            exoPlayer.stop()
-            exoPlayer.volume = 1f
-        },
-        isPlaying = exoPlayer.isPlaying
-    )
+        Spacer(Modifier.height(24.dp))
 
-    DisposableEffect(Unit) {
-        onDispose {
-            exoPlayer.release()
-        }
+        SleepTimerControl(
+            isPlaying = isPlaying,
+            onFadeStart = onFadeStart,
+            onTimerFinished = {
+                onTimerFinished()
+                viewModel.stopSound()
+            }
+        )
     }
 }
+
 

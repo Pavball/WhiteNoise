@@ -10,42 +10,19 @@ import kotlinx.coroutines.cancel
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableSharedFlow
+import kotlinx.coroutines.flow.SharedFlow
 import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.launch
 
-internal abstract class BaseViewModel<T> : ViewModel(), Closeable {
+internal abstract class BaseViewModel<T> : ViewModel() {
+    private val _viewState = MutableSharedFlow<T>(replay = 1)
+    val viewState: SharedFlow<T> = _viewState
 
-    internal val viewModelScope = CoroutineScope(
-        Dispatchers.Default +
-                SupervisorJob() +
-                CoroutineExceptionHandler { coroutineContext, throwable ->
-                    println("Exception in $this viewModelScope[$coroutineContext]: $throwable")
-                }
-    )
+    protected suspend fun emit(state: T) = _viewState.emit(state)
 
-    protected val viewState = MutableSharedFlow<T?>(
-        replay = 20,
-        extraBufferCapacity = 6,
-        onBufferOverflow = BufferOverflow.SUSPEND
-    )
+    fun <T> viewState() = viewState as Flow<T>
 
-    protected fun runCommand(block: suspend CoroutineScope.() -> Unit) =
-        viewModelScope.launch(block = block)
-
-    protected fun query(block: suspend CoroutineScope.() -> Flow<T>) =
-        viewModelScope.launch {
-            block()
-                .collect { state ->
-                    viewState.emit(state)
-                }
-        }
-
-    override fun close() {
-        viewModelScope.cancel("Closing ViewModel")
-    }
-
-    inline fun <reified T> viewState(): Flow<T> =
-        viewState.filterIsInstance<T>()
+    open fun close() {}
 }
 
 

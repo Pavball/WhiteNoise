@@ -6,9 +6,6 @@ import androidx.compose.ui.Modifier
 @Composable
 expect fun MediaPlayerComponent(
     modifier: Modifier = Modifier,
-    resId: String,
-    start: Boolean,
-    pause: Boolean,
-    stop: Boolean,
-    isLoading: (Boolean) -> Unit
+    onFadeStart: () -> Unit = {},
+    onTimerFinished: () -> Unit = {}
 )
