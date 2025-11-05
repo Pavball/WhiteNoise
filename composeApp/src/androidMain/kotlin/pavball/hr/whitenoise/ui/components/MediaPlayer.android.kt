@@ -81,6 +81,7 @@ actual fun MediaPlayerComponent(
         }
     }
 
+    //TODO() - PREBACITI UI u COMMON MAIN
 // --- UI ---
     if (duration > 1) {
         Column(modifier = modifier.padding(16.dp)) {
@@ -120,26 +121,3 @@ actual fun MediaPlayerComponent(
     }
 }
 
-fun formatTime(ms: Long): String {
-    val totalSeconds = ms / 1000
-    val minutes = totalSeconds / 60
-    val seconds = totalSeconds % 60
-    return "%02d:%02d".format(minutes, seconds)
-}
-
-fun fadeOutVolume(player: ExoPlayer, scope: CoroutineScope) {
-    scope.launch {
-        val fadeDuration = 30_000L
-        val fadeSteps = 30
-        val delayPerStep = fadeDuration / fadeSteps
-
-        for (i in 0..fadeSteps) {
-            val newVolume = 1f - (i / fadeSteps.toFloat())
-            player.volume = newVolume.coerceAtLeast(0f)
-            delay(delayPerStep)
-        }
-
-        player.volume = 0f
-        player.pause()
-    }
-}
