@@ -1,5 +1,6 @@
 package pavball.hr.whitenoise.ui.screens.home
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -8,6 +9,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.DropdownMenu
@@ -22,7 +25,9 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import org.jetbrains.compose.resources.painterResource
@@ -62,17 +67,26 @@ fun HomeScreen(modifier: Modifier = Modifier, navController: NavController) {
                 .fillMaxWidth()
                 .padding(horizontal = 24.dp),
             onClick = { expanded = !expanded },
-            colors = ButtonDefaults.buttonColors(containerColor = Color.Blue.copy(alpha = 0.5f))
+            colors = ButtonDefaults.buttonColors(containerColor = Color.Blue.copy(alpha = 0.5f)),
+            shape = RoundedCornerShape(12.dp),
+            border = BorderStroke(
+                width = 1.dp,
+                color = Color.Black.copy(alpha = 0.75f)
+            ),
         ) {
             Text(selectedSound.first)
             DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
                 sounds.forEach { (label, resId) ->
                     DropdownMenuItem(
-                        text = { Text(label) },
+                        modifier = modifier
+                            .height(32.dp)
+                            .width(512.dp)
+                            .padding(start = 6.dp, end = 6.dp)
+                            .clip(RoundedCornerShape(8.dp)),
+                        text = { Text(text = label, fontWeight = FontWeight.Bold) },
                         onClick = {
                             expanded = false
                             selectedSound = label to resId
-                            // Auto-play new sound
                             start = true
                             pause = false
                             stop = false
