@@ -12,6 +12,9 @@ import androidx.media3.exoplayer.ExoPlayer
 import pavball.hr.whitenoise.R // access to res/raw
 import kotlinx.coroutines.delay
 import androidx.core.net.toUri
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 @Composable
 actual fun MediaPlayerComponent(
@@ -23,6 +26,7 @@ actual fun MediaPlayerComponent(
     isLoading: (Boolean) -> Unit
 ) {
     val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
     val exoPlayer = remember { ExoPlayer.Builder(context).build() }
 
     var duration by remember { mutableStateOf(0L) }
@@ -40,6 +44,9 @@ actual fun MediaPlayerComponent(
 // --- Load sound when changed ---
     LaunchedEffect(resolvedResId) {
         isLoading(true)
+
+        exoPlayer.stop()
+        exoPlayer.clearMediaItems()
 
         val uri = "android.resource://${context.packageName}/$resolvedResId".toUri()
         val mediaItem = MediaItem.fromUri(uri)
@@ -95,6 +102,17 @@ actual fun MediaPlayerComponent(
         }
     }
 
+    SleepTimerControl(
+        onFadeStart = {
+            fadeOutVolume(exoPlayer, coroutineScope)
+        },
+        onTimerFinished = {
+            exoPlayer.stop()
+            exoPlayer.volume = 1f
+        },
+        isPlaying = exoPlayer.isPlaying
+    )
+
     DisposableEffect(Unit) {
         onDispose {
             exoPlayer.release()
@@ -107,4 +125,21 @@ fun formatTime(ms: Long): String {
     val minutes = totalSeconds / 60
     val seconds = totalSeconds % 60
     return "%02d:%02d".format(minutes, seconds)
+}
+
+fun fadeOutVolume(player: ExoPlayer, scope: CoroutineScope) {
+    scope.launch {
+        val fadeDuration = 30_000L
+        val fadeSteps = 30
+        val delayPerStep = fadeDuration / fadeSteps
+
+        for (i in 0..fadeSteps) {
+            val newVolume = 1f - (i / fadeSteps.toFloat())
+            player.volume = newVolume.coerceAtLeast(0f)
+            delay(delayPerStep)
+        }
+
+        player.volume = 0f
+        player.pause()
+    }
 }
