@@ -15,14 +15,41 @@ import kotlinx.coroutines.flow.filterIsInstance
 import kotlinx.coroutines.launch
 
 internal abstract class BaseViewModel<T> : ViewModel() {
-    private val _viewState = MutableSharedFlow<T>(replay = 1)
+
+    internal val viewModelScope = CoroutineScope(
+        Dispatchers.Main.immediate +
+                SupervisorJob() +
+                CoroutineExceptionHandler { coroutineContext, throwable ->
+                    println("Exception in $this viewModelScope[$coroutineContext]: $throwable")
+                }
+    )
+
+    private val _viewState = MutableSharedFlow<T>(
+        replay = 1,
+        extraBufferCapacity = 6,
+        onBufferOverflow = BufferOverflow.DROP_OLDEST
+    )
     val viewState: SharedFlow<T> = _viewState
+
+    protected fun runCommand(block: suspend CoroutineScope.() -> Unit) =
+        viewModelScope.launch(block = block)
+
+    protected fun query(block: suspend CoroutineScope.() -> Flow<T>) =
+        viewModelScope.launch {
+            block().collect { state ->
+                _viewState.emit(state)
+            }
+        }
 
     protected suspend fun emit(state: T) = _viewState.emit(state)
 
-    fun <T> viewState() = viewState as Flow<T>
+    inline fun <reified R : T> viewState(): Flow<R> =
+        viewState.filterIsInstance<R>()
 
-    open fun close() {}
+    open fun close() {
+        viewModelScope.cancel("Closing ViewModel")
+    }
 }
+
 
 

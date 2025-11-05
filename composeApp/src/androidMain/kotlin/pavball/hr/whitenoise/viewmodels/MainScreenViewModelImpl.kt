@@ -1,7 +1,14 @@
 package pavball.hr.whitenoise.viewmodels
 
+import android.content.Context
+import androidx.media3.common.MediaItem
+import androidx.media3.exoplayer.ExoPlayer
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.withContext
 import pavball.hr.whitenoise.ui.viewmodels.MainScreenViewModel
 import pavball.hr.whitenoise.ui.viewmodels.MainScreenViewState
 import kotlin.time.Clock
@@ -25,6 +32,8 @@ internal class MainScreenViewModelImpl(
     private var totalTimeMs: Long = 0L
     private var fadeOutEnabled: Boolean = true
     private var fadeStarted = false
+    private var timerJob: Job? = null
+
     @OptIn(ExperimentalTime::class)
     private var endTime: Instant? = null
 
@@ -39,51 +48,58 @@ internal class MainScreenViewModelImpl(
         runCommand {
             val resId = resourceMap[soundId] ?: return@runCommand
             isLoading = true
-            viewState.emit(MainScreenViewState.PlayerState(true, isLoading, currentSound))
+            emit(MainScreenViewState.PlayerState(isPlaying, isLoading, soundId))
 
-            exoPlayer?.stop()
-            exoPlayer?.release()
+            runOnMain {
+                exoPlayer?.stop()
+                exoPlayer?.release()
 
-            val player = ExoPlayer.Builder(context).build().also {
-                val uri = "android.resource://${context.packageName}/$resId"
-                val mediaItem = MediaItem.fromUri(uri)
-                it.setMediaItem(mediaItem)
-                it.prepare()
-                it.play()
+                val player = ExoPlayer.Builder(context).build().also {
+                    val uri = "android.resource://${context.packageName}/$resId"
+                    val mediaItem = MediaItem.fromUri(uri)
+                    it.setMediaItem(mediaItem)
+                    it.prepare()
+                    it.play()
+                }
+
+                exoPlayer = player
             }
 
-            exoPlayer = player
             isPlaying = true
             currentSound = soundId
             isLoading = false
 
-            viewState.emit(MainScreenViewState.PlayerState(isPlaying, isLoading, currentSound))
+            emit(MainScreenViewState.PlayerState(isPlaying, isLoading, currentSound))
         }
     }
 
     override fun pauseSound() {
-        exoPlayer?.pause()
-        isPlaying = false
         runCommand {
-            viewState.emit(MainScreenViewState.PlayerState(isPlaying, isLoading, currentSound))
+            runOnMain {
+                exoPlayer?.pause()
+            }
+            isPlaying = false
+            emit(MainScreenViewState.PlayerState(isPlaying, isLoading, currentSound))
         }
     }
 
     override fun stopSound() {
-        exoPlayer?.pause()
-        exoPlayer?.seekTo(0)
-        isPlaying = false
         runCommand {
-            viewState.emit(MainScreenViewState.PlayerState(isPlaying, isLoading, currentSound))
+            runOnMain {
+                exoPlayer?.pause()
+                exoPlayer?.seekTo(0)
+            }
+
+            isPlaying = false
+            emit(MainScreenViewState.PlayerState(isPlaying, isLoading, currentSound))
         }
     }
 
-    // --- Timer logic ---
+
+    @OptIn(ExperimentalTime::class)
     override fun startTimer(
         minutes: Int,
-        fadeOutEnabled: Boolean,
-        onFadeStart: () -> Unit,
-        onTimerFinished: () -> Unit
+        fadeOutEnabled: Boolean
     ) {
         cancelTimer()
 
@@ -93,8 +109,8 @@ internal class MainScreenViewModelImpl(
         fadeStarted = false
         endTime = Clock.System.now().plus(remainingTimeMs.milliseconds)
 
-        query {
-            flow {
+        timerJob = query {
+            flow<MainScreenViewState> {
                 while (remainingTimeMs > 0) {
                     delay(1.seconds)
                     val remaining = endTime?.let { it - Clock.System.now() } ?: break
@@ -102,26 +118,27 @@ internal class MainScreenViewModelImpl(
 
                     if (fadeOutEnabled && !fadeStarted && remainingTimeMs <= 30_000L) {
                         fadeStarted = true
-                        onFadeStart()
+                        fadeOutVolume()
                     }
 
                     emit(MainScreenViewState.TimerRunning(remainingTimeMs, totalTimeMs, fadeStarted))
                 }
 
                 if (remainingTimeMs <= 0) {
-                    onTimerFinished()
+                    stopSound()
                     emit(MainScreenViewState.TimerFinished)
                 }
-            }
+            }.flowOn(Dispatchers.Default)
         }
     }
 
+
+
+    @OptIn(ExperimentalTime::class)
     override fun pauseTimer() {
         endTime = null
         runCommand {
-            viewState.emit(
-                MainScreenViewState.TimerPaused(remainingTimeMs, totalTimeMs)
-            )
+            emit(MainScreenViewState.TimerPaused(remainingTimeMs, totalTimeMs))
         }
     }
 
@@ -153,15 +170,45 @@ internal class MainScreenViewModelImpl(
         }
     }
 
+    @OptIn(ExperimentalTime::class)
     override fun cancelTimer() {
+        timerJob?.cancel()
+        timerJob = null
         remainingTimeMs = 0L
         fadeStarted = false
         endTime = null
-        runCommand { viewState.emit(MainScreenViewState.Initial) }
+        runCommand { emit(MainScreenViewState.Initial) }
     }
+
 
     override fun close() {
         super.close()
         exoPlayer?.release()
+        exoPlayer = null
     }
+
+    private fun fadeOutVolume() = runCommand {
+        val fadeDurationMs = 30_000L
+        val steps = 30
+        val delayPerStep = fadeDurationMs / steps
+        val volumeStep = 1f / steps
+
+        for (i in 1..steps) {
+            val newVolume = (1f - i * volumeStep).coerceIn(0f, 1f)
+            withContext(Dispatchers.Main.immediate) {
+                exoPlayer?.volume = newVolume
+            }
+            delay(delayPerStep)
+        }
+
+        withContext(Dispatchers.Main.immediate) {
+            stopSound()
+        }
+    }
+
 }
+
+private suspend fun runOnMain(block: () -> Unit) {
+    withContext(Dispatchers.Main) { block() }
+}
+

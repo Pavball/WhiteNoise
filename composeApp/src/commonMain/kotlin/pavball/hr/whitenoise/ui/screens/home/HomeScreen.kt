@@ -13,12 +13,15 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Checkbox
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -31,20 +34,26 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import org.jetbrains.compose.resources.painterResource
-import pavball.hr.whitenoise.ui.components.MediaPlayerComponent
+import org.koin.compose.viewmodel.koinViewModel
+import pavball.hr.whitenoise.ui.components.formatTime
+import pavball.hr.whitenoise.ui.viewmodels.MainScreenViewModel
+import pavball.hr.whitenoise.ui.viewmodels.MainScreenViewState
 import whitenoise.composeapp.generated.resources.Res
 import whitenoise.composeapp.generated.resources.ic_pause
 import whitenoise.composeapp.generated.resources.ic_play
 import whitenoise.composeapp.generated.resources.ic_stop
 
 @Composable
-fun HomeScreen(modifier: Modifier = Modifier, navController: NavController) {
-    var start by remember { mutableStateOf(false) }
-    var pause by remember { mutableStateOf(false) }
-    var stop by remember { mutableStateOf(false) }
+fun HomeScreen(
+    modifier: Modifier = Modifier,
+    navController: NavController
+) {
+    val viewModel = koinViewModel<MainScreenViewModel>()
+    val state by viewModel.viewState<MainScreenViewState>()
+        .collectAsState(initial = MainScreenViewState.Initial)
 
-// Get isLoading state from MediaPlayerComponent
-    var isLoading by remember { mutableStateOf(true) }
+    var expanded by remember { mutableStateOf(false) }
+    var fadeEnabled by remember { mutableStateOf(true) }
 
     val sounds = listOf(
         "Rain" to "rain",
@@ -52,8 +61,11 @@ fun HomeScreen(modifier: Modifier = Modifier, navController: NavController) {
         "Forest Ambience" to "forest"
     )
 
-    var selectedSound by remember { mutableStateOf(sounds.first()) }
-    var expanded by remember { mutableStateOf(false) }
+    val selectedSoundKey = (state as? MainScreenViewState.PlayerState)?.currentSound ?: "rain"
+    val selectedSoundLabel = sounds.firstOrNull { it.second == selectedSoundKey }?.first ?: "Rain"
+
+    val isPlaying = (state as? MainScreenViewState.PlayerState)?.isPlaying ?: false
+    val isLoading = (state as? MainScreenViewState.PlayerState)?.isLoading ?: false
 
     Column(
         modifier = modifier
@@ -62,6 +74,7 @@ fun HomeScreen(modifier: Modifier = Modifier, navController: NavController) {
         verticalArrangement = Arrangement.Center,
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
+        // 🎵 SOUND SELECTOR
         Button(
             modifier = Modifier
                 .fillMaxWidth()
@@ -69,73 +82,48 @@ fun HomeScreen(modifier: Modifier = Modifier, navController: NavController) {
             onClick = { expanded = !expanded },
             colors = ButtonDefaults.buttonColors(containerColor = Color.Blue.copy(alpha = 0.5f)),
             shape = RoundedCornerShape(12.dp),
-            border = BorderStroke(
-                width = 1.dp,
-                color = Color.Black.copy(alpha = 0.75f)
-            ),
+            border = BorderStroke(1.dp, Color.Black.copy(alpha = 0.75f))
         ) {
-            Text(selectedSound.first)
+            Text(selectedSoundLabel)
             DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-                sounds.forEach { (label, resId) ->
+                sounds.forEach { (label, soundId) ->
                     DropdownMenuItem(
-                        modifier = modifier
+                        modifier = Modifier
                             .height(32.dp)
                             .width(512.dp)
-                            .padding(start = 6.dp, end = 6.dp)
+                            .padding(horizontal = 6.dp)
                             .clip(RoundedCornerShape(8.dp)),
-                        text = { Text(text = label, fontWeight = FontWeight.Bold) },
+                        text = { Text(label, fontWeight = FontWeight.Bold) },
                         onClick = {
                             expanded = false
-                            selectedSound = label to resId
-                            start = true
-                            pause = false
-                            stop = false
+                            viewModel.playSound(soundId)
                         }
                     )
                 }
             }
         }
 
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(24.dp))
 
+        // 🎧 CONTROLS
         Row(horizontalArrangement = Arrangement.spacedBy(12.dp)) {
             IconButton(
                 onClick = {
-                    start = true
-                    pause = false
-                    stop = false
+                    if (isPlaying) viewModel.pauseSound()
+                    else viewModel.playSound(selectedSoundKey)
                 },
-                enabled = !isLoading
             ) {
                 Icon(
-                    painter = painterResource(Res.drawable.ic_play),
-                    contentDescription = "Play",
+                    painter = painterResource(
+                        if (isPlaying) Res.drawable.ic_pause else Res.drawable.ic_play
+                    ),
+                    contentDescription = if (isPlaying) "Pause" else "Play",
                     tint = if (isLoading) Color.Gray else Color.Blue
                 )
             }
 
             IconButton(
-                onClick = {
-                    pause = true
-                    start = false
-                    stop = false
-                },
-                enabled = !isLoading
-            ) {
-                Icon(
-                    painter = painterResource(Res.drawable.ic_pause),
-                    contentDescription = "Pause",
-                    tint = if (isLoading) Color.Gray else Color.Blue
-                )
-            }
-
-            IconButton(
-                onClick = {
-                    stop = true
-                    start = false
-                    pause = false
-                },
-                enabled = !isLoading
+                onClick = { viewModel.stopSound() },
             ) {
                 Icon(
                     painter = painterResource(Res.drawable.ic_stop),
@@ -145,18 +133,42 @@ fun HomeScreen(modifier: Modifier = Modifier, navController: NavController) {
             }
         }
 
-        Spacer(Modifier.height(16.dp))
+        Spacer(Modifier.height(24.dp))
 
-        MediaPlayerComponent(
-            modifier = Modifier.fillMaxWidth(),
-            resId = selectedSound.second,
-            start = start,
-            pause = pause,
-            stop = stop,
-            isLoading = {
-                isLoading = it
+        // ⏰ TIMER
+        Text("Sleep Timer", style = MaterialTheme.typography.titleMedium)
+
+        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            listOf(5, 10, 15).forEach { minutes ->
+                Button(onClick = { viewModel.startTimer(minutes, fadeEnabled) }) {
+                    Text("$minutes min")
+                }
             }
-        )
+
+            Button(onClick = { viewModel.cancelTimer() }) {
+                Text("Cancel")
+            }
+        }
+
+
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Checkbox(
+                checked = fadeEnabled,
+                onCheckedChange = { fadeEnabled = it }
+            )
+            Text("Fade out last 30s")
+        }
+
+        when (val s = state) {
+            is MainScreenViewState.TimerRunning -> {
+                Text("Stopping in ${formatTime(s.remainingTime)}")
+            }
+            is MainScreenViewState.TimerPaused -> {
+                Text("Stopping in ${formatTime(s.remainingTime)}")
+            }
+            MainScreenViewState.TimerFinished -> Text("Timer finished")
+            else -> {}
+        }
 
     }
 }
