@@ -6,11 +6,8 @@ import androidx.media3.exoplayer.ExoPlayer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
-import kotlinx.coroutines.flow.flow
-import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
 import pavball.hr.whitenoise.ui.viewmodels.MainScreenViewModel
-import pavball.hr.whitenoise.ui.viewmodels.MainScreenViewState
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
@@ -21,15 +18,8 @@ internal class MainScreenViewModelImpl(
     private val context: Context
 ) : MainScreenViewModel() {
 
-    // --- Player handling ---
     private var exoPlayer: ExoPlayer? = null
     private var currentSound: String? = null
-    private var isLoading = false
-    private var isPlaying = false
-
-    // --- Timer handling ---
-    private var remainingTimeMs: Long = 0L
-    private var totalTimeMs: Long = 0L
     private var fadeOutEnabled: Boolean = true
     private var fadeStarted = false
     private var timerJob: Job? = null
@@ -43,25 +33,20 @@ internal class MainScreenViewModelImpl(
         "forest" to pavball.hr.whitenoise.R.raw.winter_forest
     )
 
-    // --- Playback methods ---
+    // --- Playback ---
+
     override fun playSound(soundId: String) {
         runCommand {
             val resId = resourceMap[soundId] ?: return@runCommand
-            isLoading = true
-            emit(MainScreenViewState.PlayerState(isPlaying, isLoading, soundId))
+            updateState { copy(isLoading = true, currentSound = soundId) }
 
             runOnMain {
                 val sameSound = currentSound == soundId && exoPlayer != null
-
                 if (sameSound) {
-                    // Resume playback instead of restarting
                     exoPlayer?.playWhenReady = true
                     exoPlayer?.play()
                 } else {
-                    // Stop and replace existing player
-                    exoPlayer?.stop()
                     exoPlayer?.release()
-
                     val player = ExoPlayer.Builder(context).build().also {
                         val uri = "android.resource://${context.packageName}/$resId"
                         val mediaItem = MediaItem.fromUri(uri)
@@ -69,123 +54,151 @@ internal class MainScreenViewModelImpl(
                         it.prepare()
                         it.play()
                     }
-
-                    exoPlayer = player
                     currentSound = soundId
+                    exoPlayer = player
                 }
             }
 
-            isPlaying = true
-            isLoading = false
-            emit(MainScreenViewState.PlayerState(isPlaying, isLoading, currentSound))
+            updateState { copy(isPlaying = true, isLoading = false) }
         }
     }
 
     override fun pauseSound() {
         runCommand {
-            runOnMain {
-                exoPlayer?.pause()
-            }
-            isPlaying = false
-            emit(MainScreenViewState.PlayerState(isPlaying, isLoading, currentSound))
+            runOnMain { exoPlayer?.pause() }
+            updateState { copy(isPlaying = false) }
+        }
+    }
+
+    override fun updateSelectedSoundKey(selectedSoundKey: String){
+        runCommand {
+            updateState { copy(selectedSoundKey = selectedSoundKey) }
         }
     }
 
     override fun stopSound() {
+        cancelTimer()
         runCommand {
             runOnMain {
                 exoPlayer?.pause()
                 exoPlayer?.seekTo(0)
             }
-
-            isPlaying = false
-            emit(MainScreenViewState.PlayerState(isPlaying, isLoading, currentSound))
+            updateState { copy(isPlaying = false) }
         }
     }
 
+    // --- Timer ---
 
     @OptIn(ExperimentalTime::class)
-    override fun startTimer(
-        minutes: Int,
-        fadeOutEnabled: Boolean
-    ) {
+    override fun startTimer(minutes: Int, fadeOutEnabled: Boolean) {
         cancelTimer()
-
         this.fadeOutEnabled = fadeOutEnabled
-        totalTimeMs = minutes * 60 * 1000L
-        remainingTimeMs = totalTimeMs
+
+        val totalTimeMs = minutes * 60 * 1000L
+        var remainingTimeMs = totalTimeMs
         fadeStarted = false
         endTime = Clock.System.now().plus(remainingTimeMs.milliseconds)
 
-        timerJob = query {
-            flow<MainScreenViewState> {
-                while (remainingTimeMs > 0) {
-                    delay(1.seconds)
-                    val remaining = endTime?.let { it - Clock.System.now() } ?: break
-                    remainingTimeMs = remaining.inWholeMilliseconds.coerceAtLeast(0)
+        timerJob = runCommand {
+            while (remainingTimeMs > 0) {
+                delay(1.seconds)
+                val remaining = endTime?.let { it - Clock.System.now() } ?: break
+                remainingTimeMs = remaining.inWholeMilliseconds.coerceAtLeast(0)
 
-                    if (fadeOutEnabled && !fadeStarted && remainingTimeMs <= 30_000L) {
-                        fadeStarted = true
-                        fadeOutVolume()
-                    }
-
-                    emit(MainScreenViewState.TimerRunning(remainingTimeMs, totalTimeMs, fadeStarted))
+                if (fadeOutEnabled && !fadeStarted && remainingTimeMs <= 30_000L) {
+                    fadeStarted = true
+                    fadeOutVolume()
                 }
 
-                if (remainingTimeMs <= 0) {
-                    stopSound()
-                    emit(MainScreenViewState.TimerFinished)
+                updateState {
+                    copy(
+                        remainingTime = remainingTimeMs,
+                        totalTime = totalTimeMs,
+                        fadeStarted = fadeStarted
+                    )
                 }
-            }.flowOn(Dispatchers.Default)
+            }
+
+            if (remainingTimeMs <= 0) {
+                stopSound()
+                updateState { copy(timerFinished = true) }
+            }
         }
     }
-
 
 
     @OptIn(ExperimentalTime::class)
     override fun pauseTimer() {
+        // Stop counting but keep remainingTime
+        timerJob?.cancel()
+        timerJob = null
         endTime = null
+
         runCommand {
-            emit(MainScreenViewState.TimerPaused(remainingTimeMs, totalTimeMs))
+            updateState { copy(isPlaying = false) }
         }
     }
 
     @OptIn(ExperimentalTime::class)
     override fun resumeTimer(onFadeStart: () -> Unit, onTimerFinished: () -> Unit) {
-        if (remainingTimeMs > 0) {
-            endTime = Clock.System.now().plus(remainingTimeMs.milliseconds)
-            query {
-                flow {
-                    while (remainingTimeMs > 0) {
-                        delay(1.seconds)
-                        val remaining = endTime?.let { it - Clock.System.now() } ?: break
-                        remainingTimeMs = remaining.inWholeMilliseconds.coerceAtLeast(0)
+        val state = getCurrentState()
+        val remainingMs = state.remainingTime ?: return
 
-                        if (fadeOutEnabled && !fadeStarted && remainingTimeMs <= 30_000L) {
-                            fadeStarted = true
-                            onFadeStart()
-                        }
+        endTime = Clock.System.now().plus(remainingMs.milliseconds)
 
-                        emit(MainScreenViewState.TimerRunning(remainingTimeMs, totalTimeMs, fadeStarted))
-                    }
+        timerJob = runCommand {
+            var remainingTimeMs = remainingMs
+            fadeStarted = state.fadeStarted
+            fadeOutEnabled = fadeOutEnabled // keep last used flag
 
-                    if (remainingTimeMs <= 0) {
-                        onTimerFinished()
-                        emit(MainScreenViewState.TimerFinished)
-                    }
+            updateState { copy(isPlaying = true) }
+
+            while (remainingTimeMs > 0) {
+                delay(1.seconds)
+                val remaining = endTime?.let { it - Clock.System.now() } ?: break
+                remainingTimeMs = remaining.inWholeMilliseconds.coerceAtLeast(0)
+
+                if (fadeOutEnabled && !fadeStarted && remainingTimeMs <= 30_000L) {
+                    fadeStarted = true
+                    onFadeStart()
+                    fadeOutVolume()
                 }
+
+                updateState {
+                    copy(
+                        remainingTime = remainingTimeMs,
+                        fadeStarted = fadeStarted
+                    )
+                }
+            }
+
+            if (remainingTimeMs <= 0) {
+                onTimerFinished()
+                stopSound()
+                updateState { copy(timerFinished = true) }
             }
         }
     }
+
 
     @OptIn(ExperimentalTime::class)
     override fun cancelTimer() {
         timerJob?.cancel()
         timerJob = null
-        remainingTimeMs = 0L
-        fadeStarted = false
         endTime = null
-        runCommand { emit(MainScreenViewState.Initial) }
+        fadeStarted = false
+
+        runCommand {
+            updateState {
+                copy(
+                    isPlaying = false, // optional if your state has this
+                    remainingTime = null,
+                    totalTime = null,
+                    fadeStarted = false,
+                    timerFinished = false
+                )
+            }
+        }
     }
 
 
@@ -213,10 +226,8 @@ internal class MainScreenViewModelImpl(
             stopSound()
         }
     }
-
 }
 
 private suspend fun runOnMain(block: () -> Unit) {
     withContext(Dispatchers.Main) { block() }
 }
-

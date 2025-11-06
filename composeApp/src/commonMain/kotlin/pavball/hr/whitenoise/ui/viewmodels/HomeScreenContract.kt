@@ -1,42 +1,41 @@
 package pavball.hr.whitenoise.ui.viewmodels
 
-internal sealed class MainScreenViewState {
 
-    data object Initial : MainScreenViewState()
+internal data class MainScreenViewState(
+    val sounds: List<Pair<String, String>> = defaultSounds,
+    val timerOptions: List<Int> = defaultTimerOptions,
+    val selectedSoundKey: String = "rain",
 
-    data class PlayerState(
-        val isPlaying: Boolean,
-        val isLoading: Boolean,
-        val currentSound: String?
-    ) : MainScreenViewState()
+    val isPlaying: Boolean = false,
+    val isLoading: Boolean = false,
+    val currentSound: String? = null,
 
-    data class TimerRunning(
-        val remainingTime: Long,
-        val totalTime: Long,
-        val fadeStarted: Boolean
-    ) : MainScreenViewState()
+    val remainingTime: Long? = null,
+    val totalTime: Long? = null,
+    val fadeStarted: Boolean = false,
+    val timerFinished: Boolean = false
+) {
+    companion object {
+        val defaultSounds = listOf(
+            "Rain" to "rain",
+            "Ocean Waves" to "ocean",
+            "Forest Ambience" to "forest"
+        )
 
-    data class TimerPaused(
-        val remainingTime: Long,
-        val totalTime: Long
-    ) : MainScreenViewState()
-
-    data object TimerFinished : MainScreenViewState()
+        val defaultTimerOptions = listOf(5, 10, 15)
+    }
 }
 
-internal abstract class MainScreenViewModel : BaseViewModel<MainScreenViewState>() {
+internal abstract class MainScreenViewModel : BaseViewModel<MainScreenViewState>(MainScreenViewState()) {
 
     abstract fun playSound(soundId: String)
     abstract fun pauseSound()
     abstract fun stopSound()
 
-    abstract fun startTimer(
-        minutes: Int,
-        fadeOutEnabled: Boolean
-    )
-
+    abstract fun startTimer(minutes: Int, fadeOutEnabled: Boolean)
     abstract fun pauseTimer()
     abstract fun resumeTimer(onFadeStart: () -> Unit, onTimerFinished: () -> Unit)
     abstract fun cancelTimer()
+    abstract fun updateSelectedSoundKey(selectedSoundKey: String)
 }
 
