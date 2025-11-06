@@ -51,24 +51,32 @@ internal class MainScreenViewModelImpl(
             emit(MainScreenViewState.PlayerState(isPlaying, isLoading, soundId))
 
             runOnMain {
-                exoPlayer?.stop()
-                exoPlayer?.release()
+                val sameSound = currentSound == soundId && exoPlayer != null
 
-                val player = ExoPlayer.Builder(context).build().also {
-                    val uri = "android.resource://${context.packageName}/$resId"
-                    val mediaItem = MediaItem.fromUri(uri)
-                    it.setMediaItem(mediaItem)
-                    it.prepare()
-                    it.play()
+                if (sameSound) {
+                    // Resume playback instead of restarting
+                    exoPlayer?.playWhenReady = true
+                    exoPlayer?.play()
+                } else {
+                    // Stop and replace existing player
+                    exoPlayer?.stop()
+                    exoPlayer?.release()
+
+                    val player = ExoPlayer.Builder(context).build().also {
+                        val uri = "android.resource://${context.packageName}/$resId"
+                        val mediaItem = MediaItem.fromUri(uri)
+                        it.setMediaItem(mediaItem)
+                        it.prepare()
+                        it.play()
+                    }
+
+                    exoPlayer = player
+                    currentSound = soundId
                 }
-
-                exoPlayer = player
             }
 
             isPlaying = true
-            currentSound = soundId
             isLoading = false
-
             emit(MainScreenViewState.PlayerState(isPlaying, isLoading, currentSound))
         }
     }
