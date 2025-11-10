@@ -21,6 +21,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -60,6 +61,10 @@ fun HomeScreen(
         .firstOrNull { it.second == state.currentSound }
         ?.first ?: "Select sound"
 
+    LaunchedEffect(state.timerSelectedMinutes){
+        chosenMinute = state.timerSelectedMinutes
+    }
+
     Column(
         modifier = modifier
             .fillMaxSize()
@@ -91,7 +96,10 @@ fun HomeScreen(
                             expanded = false
                             viewModel.updateSelectedSoundKey(selectedSoundKey = soundId)
                             viewModel.playSound(soundId)
-                            viewModel.startTimer(if (chosenMinute != 0) chosenMinute else 1, fadeEnabled)
+                            viewModel.startTimer(
+                                if (chosenMinute != 0) chosenMinute else 1,
+                                fadeEnabled
+                            )
                         }
                     )
                 }
@@ -109,9 +117,12 @@ fun HomeScreen(
                         viewModel.pauseTimer()
                     } else {
                         viewModel.playSound(state.selectedSoundKey)
-                        if(state.remainingTime == null) {
-                            viewModel.startTimer(if (chosenMinute != 0) chosenMinute else 1, fadeEnabled)
-                        }else{
+                        if (state.remainingTime == null) {
+                            viewModel.startTimer(
+                                if (chosenMinute != 0) chosenMinute else 1,
+                                fadeEnabled
+                            )
+                        } else {
                             viewModel.resumeTimer(
                                 onFadeStart = { /* optional animation */ },
                                 onTimerFinished = { /* optional dialog or toast */ }
@@ -141,27 +152,35 @@ fun HomeScreen(
             }
         }
 
-
         Spacer(Modifier.height(24.dp))
 
         // Timer section
         Text("Sleep Timer", style = MaterialTheme.typography.titleMedium)
 
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            state.timerOptions.forEach { minutes ->
-                Button(
-                    onClick = { chosenMinute = minutes },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = if (chosenMinute == minutes)
-                            Color.Blue.copy(alpha = 0.7f)
-                        else
-                            Color.Gray.copy(alpha = 0.4f)
-                    )
-                ) {
-                    Text("$minutes min")
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+
+            Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                state.timerOptions.forEach { minutes ->
+                    Button(
+                        onClick = {
+                            chosenMinute = minutes
+                            viewModel.updateSelectedTimer(minutes)
+                        },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = if (chosenMinute == minutes)
+                                Color.Blue.copy(alpha = 0.7f)
+                            else
+                                Color.Gray.copy(alpha = 0.4f)
+                        )
+                    ) {
+                        Text("$minutes min")
+                    }
                 }
+
             }
+
             Button(onClick = { viewModel.cancelTimer() }) { Text("Cancel") }
+
         }
 
         Row(verticalAlignment = Alignment.CenterVertically) {
@@ -172,6 +191,7 @@ fun HomeScreen(
         when {
             state.remainingTime != null ->
                 Text("Stopping in ${formatTime(state.remainingTime!!)}")
+
             state.timerFinished ->
                 Text("Timer finished")
         }

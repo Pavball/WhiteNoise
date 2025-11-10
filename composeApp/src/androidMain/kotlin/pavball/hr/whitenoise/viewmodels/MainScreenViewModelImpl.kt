@@ -6,8 +6,12 @@ import androidx.media3.exoplayer.ExoPlayer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.withContext
+import pavball.hr.whitenoise.ui.components.SettingsDataStore
+import pavball.hr.whitenoise.ui.components.UserSettings
 import pavball.hr.whitenoise.ui.viewmodels.MainScreenViewModel
+import pavball.hr.whitenoise.ui.viewmodels.MainScreenViewState
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
@@ -15,7 +19,8 @@ import kotlin.time.ExperimentalTime
 import kotlin.time.Instant
 
 internal class MainScreenViewModelImpl(
-    private val context: Context
+    private val context: Context,
+    private val settings: SettingsDataStore
 ) : MainScreenViewModel() {
 
     private var exoPlayer: ExoPlayer? = null
@@ -30,11 +35,28 @@ internal class MainScreenViewModelImpl(
     private val resourceMap = mapOf(
         "rain" to pavball.hr.whitenoise.R.raw.rain,
         "ocean" to pavball.hr.whitenoise.R.raw.ocean_waves,
-        "forest" to pavball.hr.whitenoise.R.raw.winter_forest
+        "forest" to pavball.hr.whitenoise.R.raw.winter_forest,
+        "thunder" to pavball.hr.whitenoise.R.raw.rain_thunder,
     )
 
-    // --- Playback ---
+    init {
+        // Restore user settings
+        runCommand {
+            settings.userSettingsFlow.collectLatest { prefs ->
+                updateState {
+                    copy(
+                        selectedSoundKey = prefs.lastSound ?: selectedSoundKey,
+                        fadeEnabled = prefs.fadeEnabled,
+                        fadeDuration = prefs.fadeDuration,
+                        timerSelectedMinutes = prefs.timerMinutes,
+                        themeMode = prefs.themeMode
+                    )
+                }
+            }
+        }
+    }
 
+    // --- Playback ---
     override fun playSound(soundId: String) {
         runCommand {
             val resId = resourceMap[soundId] ?: return@runCommand
@@ -60,6 +82,12 @@ internal class MainScreenViewModelImpl(
             }
 
             updateState { copy(isPlaying = true, isLoading = false) }
+
+            runCommand {
+                settings.saveSettings(
+                    getCurrentState().toUserSettings()
+                )
+            }
         }
     }
 
@@ -67,12 +95,6 @@ internal class MainScreenViewModelImpl(
         runCommand {
             runOnMain { exoPlayer?.pause() }
             updateState { copy(isPlaying = false) }
-        }
-    }
-
-    override fun updateSelectedSoundKey(selectedSoundKey: String){
-        runCommand {
-            updateState { copy(selectedSoundKey = selectedSoundKey) }
         }
     }
 
@@ -87,8 +109,14 @@ internal class MainScreenViewModelImpl(
         }
     }
 
-    // --- Timer ---
+    override fun updateSelectedSoundKey(selectedSoundKey: String) {
+        runCommand {
+            updateState { copy(selectedSoundKey = selectedSoundKey) }
+            settings.saveSettings(getCurrentState().toUserSettings())
+        }
+    }
 
+    // --- Timer ---
     @OptIn(ExperimentalTime::class)
     override fun startTimer(minutes: Int, fadeOutEnabled: Boolean) {
         cancelTimer()
@@ -124,12 +152,15 @@ internal class MainScreenViewModelImpl(
                 updateState { copy(timerFinished = true) }
             }
         }
-    }
 
+        // Save timer state
+        runCommand {
+            settings.saveSettings(getCurrentState().toUserSettings())
+        }
+    }
 
     @OptIn(ExperimentalTime::class)
     override fun pauseTimer() {
-        // Stop counting but keep remainingTime
         timerJob?.cancel()
         timerJob = null
         endTime = null
@@ -149,7 +180,6 @@ internal class MainScreenViewModelImpl(
         timerJob = runCommand {
             var remainingTimeMs = remainingMs
             fadeStarted = state.fadeStarted
-            fadeOutEnabled = fadeOutEnabled // keep last used flag
 
             updateState { copy(isPlaying = true) }
 
@@ -180,7 +210,6 @@ internal class MainScreenViewModelImpl(
         }
     }
 
-
     @OptIn(ExperimentalTime::class)
     override fun cancelTimer() {
         timerJob?.cancel()
@@ -191,7 +220,7 @@ internal class MainScreenViewModelImpl(
         runCommand {
             updateState {
                 copy(
-                    isPlaying = false, // optional if your state has this
+                    isPlaying = false,
                     remainingTime = null,
                     totalTime = null,
                     fadeStarted = false,
@@ -201,6 +230,12 @@ internal class MainScreenViewModelImpl(
         }
     }
 
+    override fun updateSelectedTimer(minutes: Int) {
+        runCommand {
+            updateState { copy(timerSelectedMinutes = minutes) }
+            settings.saveSettings(getCurrentState().toUserSettings())
+        }
+    }
 
     override fun close() {
         super.close()
@@ -226,6 +261,21 @@ internal class MainScreenViewModelImpl(
             stopSound()
         }
     }
+
+    override fun saveThemeModeToUserPrefs(themeMode: String) {
+        runCommand {
+            updateState { copy(themeMode = themeMode) }
+            settings.saveSettings(getCurrentState().toUserSettings())
+        }
+    }
+
+    private fun MainScreenViewState.toUserSettings() = UserSettings(
+        lastSound = currentSound ?: selectedSoundKey,
+        timerMinutes = timerSelectedMinutes,
+        fadeEnabled = fadeEnabled,
+        fadeDuration = fadeDuration,
+        themeMode = themeMode
+    )
 }
 
 private suspend fun runOnMain(block: () -> Unit) {

@@ -1,0 +1,51 @@
+[
+  {
+    "id": "TASK_1",
+    "priority": "LOW",
+    "tags": [
+      "Backend",
+      "UI"
+    ],
+    "title": "Home Screen UI",
+    "description": "Prepraviti Sleep Timer gumbe, da kada se stisne na jedan, da se spremi u Data Store kao zapamćeni gumb",
+    "status": "IN_PROGRESS",
+    "date": {
+      "date": {
+        "year": 2025,
+        "month": 11,
+        "day": 10
+      },
+      "time": {
+        "hour": 18,
+        "minute": 33,
+        "second": 7,
+        "nano": 338264300
+      }
+    },
+    "isImported": false
+  },
+  {
+    "id": "TASK_6",
+    "priority": "LOW",
+    "tags": [
+      "UI"
+    ],
+    "title": "Remove 1 minute from UI when done with App",
+    "description": "Moraš maknuti da stavi na 1 minutu, već da stavi na 5 minuta kao default vrijednost",
+    "status": "TODO",
+    "date": {
+      "date": {
+        "year": 2025,
+        "month": 11,
+        "day": 10
+      },
+      "time": {
+        "hour": 21,
+        "minute": 2,
+        "second": 9,
+        "nano": 879828800
+      }
+    },
+    "isImported": false
+  }
+]

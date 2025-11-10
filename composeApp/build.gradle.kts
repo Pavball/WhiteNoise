@@ -60,6 +60,8 @@ kotlin {
 
             implementation(libs.lifecycle.viewmodel.compose)
             implementation(libs.navigation.compose)
+            implementation(libs.androidx.datastore.preferences)
+
         }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)
