@@ -7,7 +7,7 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import pavball.hr.whitenoise.ui.components.BottomNavigationBar
 import pavball.hr.whitenoise.ui.components.TopToolbar
-import pavball.hr.whitenoise.ui.screens.empty.OptionsScreen
+import pavball.hr.whitenoise.ui.screens.options.OptionsScreen
 import pavball.hr.whitenoise.ui.screens.home.HomeScreen
 
 @Composable
