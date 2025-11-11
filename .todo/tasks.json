@@ -8,7 +8,7 @@
     ],
     "title": "Home Screen UI",
     "description": "Prepraviti Sleep Timer gumbe, da kada se stisne na jedan, da se spremi u Data Store kao zapamćeni gumb",
-    "status": "IN_PROGRESS",
+    "status": "DONE",
     "date": {
       "date": {
         "year": 2025,
@@ -44,6 +44,30 @@
         "minute": 2,
         "second": 9,
         "nano": 879828800
+      }
+    },
+    "isImported": false
+  },
+  {
+    "id": "TASK_11",
+    "priority": "LOW",
+    "tags": [
+      "UI"
+    ],
+    "title": "Widget",
+    "description": "Widget za puštanje zvuka",
+    "status": "TODO",
+    "date": {
+      "date": {
+        "year": 2025,
+        "month": 11,
+        "day": 11
+      },
+      "time": {
+        "hour": 21,
+        "minute": 33,
+        "second": 38,
+        "nano": 617956100
       }
     },
     "isImported": false

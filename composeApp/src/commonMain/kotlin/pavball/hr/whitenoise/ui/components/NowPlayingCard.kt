@@ -56,7 +56,9 @@ fun NowPlayingCard(
                 }
             }
 
-            // 🎵 Add animated waveform
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Add animated waveform
             WaveformVisualizer(
                 isPlaying = isPlaying,
                 soundType = soundKey,

@@ -84,7 +84,6 @@ fun HomeScreen(
         else 0f
     }
 
-
     Column(
         modifier = modifier
             .fillMaxSize()
