@@ -10,8 +10,6 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -40,6 +38,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import org.jetbrains.compose.resources.painterResource
 import org.koin.compose.viewmodel.koinViewModel
+import pavball.hr.whitenoise.domain.model.rememberSoundPicker
 import pavball.hr.whitenoise.ui.components.NowPlayingCard
 import pavball.hr.whitenoise.ui.components.formatTime
 import pavball.hr.whitenoise.ui.viewmodels.MainScreenViewModel
@@ -77,6 +76,12 @@ fun HomeScreen(
         chosenMinute = state.timerSelectedMinutes
     }
 
+    val launchSoundPicker = rememberSoundPicker { sound ->
+        if (sound != null) {
+            viewModel.addUserSound(sound.name, sound.uri)
+        }
+    }
+
     // Calculate playback progress
     val progress = remember(state.remainingTime, state.totalTime) {
         if (state.totalTime != null && state.remainingTime != null && state.totalTime!! > 0)
@@ -104,37 +109,49 @@ fun HomeScreen(
 
         Spacer(Modifier.height(24.dp))
 
-        // Sound selector
-        Button(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 24.dp),
-            onClick = { expanded = !expanded },
-            colors = ButtonDefaults.buttonColors(containerColor = Color.Blue.copy(alpha = 0.5f)),
-            shape = RoundedCornerShape(12.dp),
-            border = BorderStroke(1.dp, Color.Black.copy(alpha = 0.75f))
-        ) {
-            Text(selectedSoundLabel)
-            DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
-                state.sounds.forEach { (label, soundId) ->
-                    DropdownMenuItem(
-                        modifier = Modifier
-                            .height(32.dp)
-                            .width(512.dp)
-                            .padding(horizontal = 6.dp)
-                            .clip(RoundedCornerShape(8.dp)),
-                        text = { Text(label, fontWeight = FontWeight.Bold) },
-                        onClick = {
-                            expanded = false
-                            viewModel.updateSelectedSoundKey(selectedSoundKey = soundId)
-                            viewModel.playSound(soundId)
-                            viewModel.startTimer(
-                                if (chosenMinute != 0) chosenMinute else 1,
-                                fadeEnabled
-                            )
-                        }
-                    )
+
+        Column(horizontalAlignment = Alignment.CenterHorizontally) {
+            // Sound selector dropdown
+            Button(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp),
+                onClick = { expanded = !expanded },
+                colors = ButtonDefaults.buttonColors(containerColor = Color.Blue.copy(alpha = 0.5f)),
+                shape = RoundedCornerShape(12.dp),
+                border = BorderStroke(1.dp, Color.Black.copy(alpha = 0.75f))
+            ) {
+                Text(selectedSoundLabel)
+                DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                    // Combine built-in + user sounds
+                    val combinedSounds = state.sounds + viewModel.userSounds.collectAsState().value.map {
+                        it.name to it.uri
+                    }
+                    combinedSounds.forEach { (label, soundId) ->
+                        DropdownMenuItem(
+                            text = { Text(label, fontWeight = FontWeight.Bold) },
+                            onClick = {
+                                expanded = false
+                                viewModel.updateSelectedSoundKey(soundId)
+                                viewModel.playSound(soundId)
+                                viewModel.startTimer(
+                                    if (chosenMinute != 0) chosenMinute else 1,
+                                    fadeEnabled
+                                )
+                            }
+                        )
+                    }
                 }
+            }
+
+            Spacer(Modifier.height(8.dp))
+
+            // "Add your own sound" button
+            Button(
+                onClick = { launchSoundPicker() },
+                colors = ButtonDefaults.buttonColors(containerColor = Color.Blue.copy(alpha = 0.5f))
+            ) {
+                Text("Add Custom Sound")
             }
         }
 

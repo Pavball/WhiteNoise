@@ -1,5 +1,8 @@
 package pavball.hr.whitenoise.ui.viewmodels
 
+import kotlinx.coroutines.flow.StateFlow
+import pavball.hr.whitenoise.domain.model.UserSound
+
 
 internal data class MainScreenViewState(
     val sounds: List<Pair<String, String>> = defaultSounds,
@@ -36,6 +39,8 @@ internal data class MainScreenViewState(
 
 internal abstract class MainScreenViewModel : BaseViewModel<MainScreenViewState>(MainScreenViewState()) {
 
+    abstract val userSounds: StateFlow<List<UserSound>>
+
     abstract fun playSound(soundId: String)
     abstract fun pauseSound()
     abstract fun stopSound()
@@ -48,5 +53,7 @@ internal abstract class MainScreenViewModel : BaseViewModel<MainScreenViewState>
     abstract fun saveThemeModeToUserPrefs(themeMode: String)
     abstract fun updateSelectedTimer(minutes: Int)
 
+    abstract fun addUserSound(name: String, uri: String)
+    abstract fun removeUserSound(uri: String)
 }
 

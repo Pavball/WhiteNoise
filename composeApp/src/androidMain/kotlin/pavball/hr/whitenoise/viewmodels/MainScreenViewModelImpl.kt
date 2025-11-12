@@ -1,13 +1,18 @@
 package pavball.hr.whitenoise.viewmodels
 
 import android.content.Context
+import android.net.Uri
 import androidx.media3.common.MediaItem
 import androidx.media3.exoplayer.ExoPlayer
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.withContext
+import pavball.hr.whitenoise.domain.model.UserSound
 import pavball.hr.whitenoise.ui.components.SettingsDataStore
 import pavball.hr.whitenoise.ui.components.UserSettings
 import pavball.hr.whitenoise.ui.viewmodels.MainScreenViewModel
@@ -22,6 +27,9 @@ internal class MainScreenViewModelImpl(
     private val context: Context,
     private val settings: SettingsDataStore
 ) : MainScreenViewModel() {
+
+    private val _userSounds = MutableStateFlow<List<UserSound>>(emptyList())
+    override val userSounds: StateFlow<List<UserSound>> = _userSounds.asStateFlow()
 
     private var exoPlayer: ExoPlayer? = null
     private var currentSound: String? = null
@@ -39,6 +47,7 @@ internal class MainScreenViewModelImpl(
         "thunder" to pavball.hr.whitenoise.R.raw.rain_thunder,
     )
 
+
     init {
         // Restore user settings
         runCommand {
@@ -54,39 +63,65 @@ internal class MainScreenViewModelImpl(
                 }
             }
         }
+
+        runCommand {
+            settings.userSoundsFlow.collectLatest { loaded ->
+                _userSounds.value = loaded
+            }
+        }
+    }
+
+    //Custom User Sound
+    override fun addUserSound(name: String, uri: String) {
+        runCommand {
+            val updated = _userSounds.value + UserSound(name, uri)
+            _userSounds.value = updated
+            settings.saveUserSounds(updated)
+        }
+    }
+
+    override fun removeUserSound(uri: String) {
+        runCommand {
+            val updated = _userSounds.value.filterNot { it.uri == uri }
+            _userSounds.value = updated
+            settings.saveUserSounds(updated)
+        }
     }
 
     // --- Playback ---
     override fun playSound(soundId: String) {
         runCommand {
-            val resId = resourceMap[soundId] ?: return@runCommand
             updateState { copy(isLoading = true, currentSound = soundId) }
 
             runOnMain {
+                val uri = resolveSoundUri(soundId) ?: return@runOnMain
+
                 val sameSound = currentSound == soundId && exoPlayer != null
                 if (sameSound) {
+                    // already prepared — just resume
                     exoPlayer?.playWhenReady = true
                     exoPlayer?.play()
                 } else {
+                    // replace existing player
                     exoPlayer?.release()
+
                     val player = ExoPlayer.Builder(context).build().also {
-                        val uri = "android.resource://${context.packageName}/$resId"
                         val mediaItem = MediaItem.fromUri(uri)
                         it.setMediaItem(mediaItem)
                         it.prepare()
                         it.play()
                     }
-                    currentSound = soundId
+
                     exoPlayer = player
+                    currentSound = soundId
                 }
             }
 
             updateState { copy(isPlaying = true, isLoading = false) }
 
+            // persist selected sound to user settings (optional)
             runCommand {
-                settings.saveSettings(
-                    getCurrentState().toUserSettings()
-                )
+                settings.saveSettings(getCurrentState().toUserSettings())
             }
         }
     }
@@ -181,6 +216,25 @@ internal class MainScreenViewModelImpl(
             var remainingTimeMs = remainingMs
             fadeStarted = state.fadeStarted
 
+            runOnMain {
+                if (exoPlayer == null && currentSound != null) {
+                    // Try to (re)prepare the player for the currentSound
+                    val uri = resolveSoundUri(currentSound!!)
+                    if (uri != null) {
+                        exoPlayer = ExoPlayer.Builder(context).build().also {
+                            val mediaItem = MediaItem.fromUri(uri)
+                            it.setMediaItem(mediaItem)
+                            it.prepare()
+                            it.play()
+                        }
+                    }
+                } else {
+                    // if player exists, resume playback
+                    exoPlayer?.playWhenReady = true
+                    exoPlayer?.play()
+                }
+            }
+
             updateState { copy(isPlaying = true) }
 
             while (remainingTimeMs > 0) {
@@ -209,6 +263,7 @@ internal class MainScreenViewModelImpl(
             }
         }
     }
+
 
     @OptIn(ExperimentalTime::class)
     override fun cancelTimer() {
@@ -276,6 +331,27 @@ internal class MainScreenViewModelImpl(
         fadeDuration = fadeDuration,
         themeMode = themeMode
     )
+
+    private fun resolveSoundUri(soundId: String): Uri? {
+        // user-provided URIs are passed as-is
+        if (soundId.startsWith("content://") || soundId.startsWith("file://") || soundId.startsWith("http")) {
+            return Uri.parse(soundId)
+        }
+
+        // built-in resource ids
+        val resId = resourceMap[soundId]
+        return if (resId != null) {
+            Uri.parse("android.resource://${context.packageName}/$resId")
+        } else {
+            // If the soundId looks like a Uri string but without scheme, try parsing
+            return try {
+                Uri.parse(soundId).takeIf { it.scheme != null }
+            } catch (e: Exception) {
+                null
+            }
+        }
+    }
+
 }
 
 private suspend fun runOnMain(block: () -> Unit) {
