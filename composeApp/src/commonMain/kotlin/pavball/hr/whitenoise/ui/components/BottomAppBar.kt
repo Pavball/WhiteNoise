@@ -21,7 +21,7 @@ import whitenoise.composeapp.generated.resources.ic_pause
 
 @Composable
 fun BottomNavigationBar(modifier: Modifier = Modifier, navController: NavController) {
-    val items = listOf(Screens.Home, Screens.Options)
+    val items = listOf(Screens.Home,Screens.ManageCustomSounds, Screens.Options)
 
     BottomAppBar(
         contentColor = Color.White,
@@ -43,11 +43,6 @@ fun BottomNavigationBar(modifier: Modifier = Modifier, navController: NavControl
                     onClick = {
                         if (currentRoute != tab.route) {
                             navController.navigate(tab.route) {
-                                navController.graph.startDestinationRoute?.let {
-                                    popUpTo(it) {
-                                        saveState = true
-                                    }
-                                }
                                 launchSingleTop = true
                                 restoreState = true
                             }

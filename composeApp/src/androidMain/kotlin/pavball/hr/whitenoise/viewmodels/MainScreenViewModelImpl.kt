@@ -12,7 +12,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.withContext
-import pavball.hr.whitenoise.domain.model.UserSound
+import pavball.hr.whitenoise.domain.model.CustomSound
 import pavball.hr.whitenoise.ui.components.SettingsDataStore
 import pavball.hr.whitenoise.ui.components.UserSettings
 import pavball.hr.whitenoise.ui.viewmodels.MainScreenViewModel
@@ -28,8 +28,11 @@ internal class MainScreenViewModelImpl(
     private val settings: SettingsDataStore
 ) : MainScreenViewModel() {
 
-    private val _userSounds = MutableStateFlow<List<UserSound>>(emptyList())
-    override val userSounds: StateFlow<List<UserSound>> = _userSounds.asStateFlow()
+    private val _customSounds = MutableStateFlow<List<CustomSound>>(emptyList())
+    override val userSounds: StateFlow<List<CustomSound>> = _customSounds.asStateFlow()
+
+    private val _pendingRename = MutableStateFlow<CustomSound?>(null)
+    override val pendingRename: StateFlow<CustomSound?> = _pendingRename.asStateFlow()
 
     private var exoPlayer: ExoPlayer? = null
     private var currentSound: String? = null
@@ -44,12 +47,11 @@ internal class MainScreenViewModelImpl(
         "rain" to pavball.hr.whitenoise.R.raw.rain,
         "ocean" to pavball.hr.whitenoise.R.raw.ocean_waves,
         "forest" to pavball.hr.whitenoise.R.raw.winter_forest,
-        "thunder" to pavball.hr.whitenoise.R.raw.rain_thunder,
+        "thunder" to pavball.hr.whitenoise.R.raw.rain_thunder
     )
 
-
     init {
-        // Restore user settings
+        // load persisted user settings into state
         runCommand {
             settings.userSettingsFlow.collectLatest { prefs ->
                 updateState {
@@ -64,34 +66,73 @@ internal class MainScreenViewModelImpl(
             }
         }
 
+        // load persisted custom sounds into _customSounds
         runCommand {
             settings.userSoundsFlow.collectLatest { loaded ->
-                _userSounds.value = loaded
+                _customSounds.value = loaded
             }
         }
     }
 
-    //Custom User Sound
+    // -------------------- custom sound ops --------------------
     override fun addUserSound(name: String, uri: String) {
         runCommand {
-            val updated = _userSounds.value + UserSound(name, uri)
-            _userSounds.value = updated
-            settings.saveUserSounds(updated)
+            // prepare sound
+            val sound = CustomSound(id = uri, displayName = name)
+
+            // set pending rename immediately so UI shows dialog without delay
+            runOnMain { _pendingRename.value = sound }
+
+            // update in-memory list first (so UI lists it right away)
+            val updated = _customSounds.value + sound
+            _customSounds.value = updated
+
+            // persist on IO and await completion
+            withContext(Dispatchers.IO) {
+                settings.saveUserSounds(updated)
+            }
         }
     }
 
-    override fun removeUserSound(uri: String) {
+    override fun renameCustomSound(id: String, newName: String) {
         runCommand {
-            val updated = _userSounds.value.filterNot { it.uri == uri }
-            _userSounds.value = updated
-            settings.saveUserSounds(updated)
+            val updated = _customSounds.value.map { if (it.id == id) it.copy(displayName = newName) else it }
+            _customSounds.value = updated
+
+            // persist on IO
+            withContext(Dispatchers.IO) {
+                settings.saveUserSounds(updated)
+            }
+
+            // clear pending rename if it was this sound
+            if (_pendingRename.value?.id == id) _pendingRename.value = null
         }
     }
 
-    // --- Playback ---
+    override fun removeUserSound(id: String) {
+        runCommand {
+            val updated = _customSounds.value.filterNot { it.id == id }
+            _customSounds.value = updated
+
+            withContext(Dispatchers.IO) {
+                settings.saveUserSounds(updated)
+            }
+
+            // if removed was pending rename clear it
+            if (_pendingRename.value?.id == id) _pendingRename.value = null
+        }
+    }
+
+    override fun clearPendingRename() {
+        runCommand {
+            _pendingRename.value = null
+        }
+    }
+
+    // -------------------- playback --------------------
     override fun playSound(soundId: String) {
         runCommand {
-            updateState { copy(isLoading = true, currentSound = soundId) }
+            updateState { copy(isLoading = true, currentSound = soundId, isCleared = false) }
 
             runOnMain {
                 val uri = resolveSoundUri(soundId) ?: return@runOnMain
@@ -119,9 +160,9 @@ internal class MainScreenViewModelImpl(
 
             updateState { copy(isPlaying = true, isLoading = false) }
 
-            // persist selected sound to user settings (optional)
-            runCommand {
-                settings.saveSettings(getCurrentState().toUserSettings())
+            // persist selected sound to user settings (on IO, safely)
+            withContext(Dispatchers.IO) {
+                saveUserSettings()
             }
         }
     }
@@ -140,18 +181,22 @@ internal class MainScreenViewModelImpl(
                 exoPlayer?.pause()
                 exoPlayer?.seekTo(0)
             }
-            updateState { copy(isPlaying = false) }
+            updateState { copy(isPlaying = false, isCleared = true) }
         }
     }
 
     override fun updateSelectedSoundKey(selectedSoundKey: String) {
         runCommand {
             updateState { copy(selectedSoundKey = selectedSoundKey) }
-            settings.saveSettings(getCurrentState().toUserSettings())
+
+            if (!selectedSoundKey.startsWith("content://")) {
+                // Only save default sounds
+                saveUserSettings()
+            }
         }
     }
 
-    // --- Timer ---
+    // -------------------- timer (unchanged behavior) --------------------
     @OptIn(ExperimentalTime::class)
     override fun startTimer(minutes: Int, fadeOutEnabled: Boolean) {
         cancelTimer()
@@ -188,9 +233,11 @@ internal class MainScreenViewModelImpl(
             }
         }
 
-        // Save timer state
         runCommand {
-            settings.saveSettings(getCurrentState().toUserSettings())
+            // ensure persisted safely
+            withContext(Dispatchers.IO) {
+                saveUserSettings()
+            }
         }
     }
 
@@ -218,7 +265,6 @@ internal class MainScreenViewModelImpl(
 
             runOnMain {
                 if (exoPlayer == null && currentSound != null) {
-                    // Try to (re)prepare the player for the currentSound
                     val uri = resolveSoundUri(currentSound!!)
                     if (uri != null) {
                         exoPlayer = ExoPlayer.Builder(context).build().also {
@@ -229,7 +275,6 @@ internal class MainScreenViewModelImpl(
                         }
                     }
                 } else {
-                    // if player exists, resume playback
                     exoPlayer?.playWhenReady = true
                     exoPlayer?.play()
                 }
@@ -264,7 +309,6 @@ internal class MainScreenViewModelImpl(
         }
     }
 
-
     @OptIn(ExperimentalTime::class)
     override fun cancelTimer() {
         timerJob?.cancel()
@@ -288,7 +332,20 @@ internal class MainScreenViewModelImpl(
     override fun updateSelectedTimer(minutes: Int) {
         runCommand {
             updateState { copy(timerSelectedMinutes = minutes) }
-            settings.saveSettings(getCurrentState().toUserSettings())
+            withContext(Dispatchers.IO) {
+                saveUserSettings()
+            }
+        }
+    }
+
+    override fun saveThemeModeToUserPrefs(themeMode: String) {
+        runCommand {
+            updateState { copy(themeMode = themeMode) }
+
+            // Save on IO dispatcher to avoid blocking UI
+            withContext(Dispatchers.IO) {
+                saveUserSettings()
+            }
         }
     }
 
@@ -317,33 +374,33 @@ internal class MainScreenViewModelImpl(
         }
     }
 
-    override fun saveThemeModeToUserPrefs(themeMode: String) {
-        runCommand {
-            updateState { copy(themeMode = themeMode) }
-            settings.saveSettings(getCurrentState().toUserSettings())
-        }
+    // IMPORTANT: do not persist content:// URIs as lastSound.
+    private fun MainScreenViewState.toUserSettings(): UserSettings {
+        return UserSettings(
+            lastSound =
+                if (!selectedSoundKey.startsWith("content://")) selectedSoundKey
+                else "rain", // fallback so we never save custom URIs
+
+            timerMinutes = timerSelectedMinutes,
+            fadeEnabled = fadeEnabled,
+            fadeDuration = fadeDuration,
+            themeMode = themeMode
+        )
     }
 
-    private fun MainScreenViewState.toUserSettings() = UserSettings(
-        lastSound = currentSound ?: selectedSoundKey,
-        timerMinutes = timerSelectedMinutes,
-        fadeEnabled = fadeEnabled,
-        fadeDuration = fadeDuration,
-        themeMode = themeMode
-    )
+    private fun saveUserSettings() = runCommand {
+        settings.saveSettings(getCurrentState().toUserSettings())
+    }
 
     private fun resolveSoundUri(soundId: String): Uri? {
-        // user-provided URIs are passed as-is
         if (soundId.startsWith("content://") || soundId.startsWith("file://") || soundId.startsWith("http")) {
             return Uri.parse(soundId)
         }
 
-        // built-in resource ids
         val resId = resourceMap[soundId]
         return if (resId != null) {
             Uri.parse("android.resource://${context.packageName}/$resId")
         } else {
-            // If the soundId looks like a Uri string but without scheme, try parsing
             return try {
                 Uri.parse(soundId).takeIf { it.scheme != null }
             } catch (e: Exception) {
@@ -351,7 +408,6 @@ internal class MainScreenViewModelImpl(
             }
         }
     }
-
 }
 
 private suspend fun runOnMain(block: () -> Unit) {

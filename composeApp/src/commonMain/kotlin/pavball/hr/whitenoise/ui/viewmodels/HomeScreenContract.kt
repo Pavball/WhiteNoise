@@ -1,16 +1,18 @@
 package pavball.hr.whitenoise.ui.viewmodels
 
 import kotlinx.coroutines.flow.StateFlow
-import pavball.hr.whitenoise.domain.model.UserSound
+import pavball.hr.whitenoise.domain.model.CustomSound
 
 
 internal data class MainScreenViewState(
     val sounds: List<Pair<String, String>> = defaultSounds,
+    val customSounds: List<CustomSound> = emptyList(),
     val timerOptions: List<Int> = defaultTimerOptions,
     val selectedSoundKey: String = "rain",
 
     val isPlaying: Boolean = false,
     val isLoading: Boolean = false,
+    val isCleared: Boolean = false,
     val currentSound: String? = null,
 
     val remainingTime: Long? = null,
@@ -37,9 +39,11 @@ internal data class MainScreenViewState(
 }
 
 
-internal abstract class MainScreenViewModel : BaseViewModel<MainScreenViewState>(MainScreenViewState()) {
+internal abstract class MainScreenViewModel :
+    BaseViewModel<MainScreenViewState>(MainScreenViewState()) {
 
-    abstract val userSounds: StateFlow<List<UserSound>>
+    abstract val userSounds: StateFlow<List<CustomSound>>
+    abstract val pendingRename: StateFlow<CustomSound?>
 
     abstract fun playSound(soundId: String)
     abstract fun pauseSound()
@@ -53,7 +57,9 @@ internal abstract class MainScreenViewModel : BaseViewModel<MainScreenViewState>
     abstract fun saveThemeModeToUserPrefs(themeMode: String)
     abstract fun updateSelectedTimer(minutes: Int)
 
-    abstract fun addUserSound(name: String, uri: String)
-    abstract fun removeUserSound(uri: String)
+    abstract fun addUserSound(name: String, id: String)
+    abstract fun removeUserSound(id: String)
+    abstract fun renameCustomSound(id: String, newName: String)
+    abstract fun clearPendingRename()
 }
 

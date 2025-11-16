@@ -9,7 +9,7 @@ import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import kotlinx.serialization.json.Json
-import pavball.hr.whitenoise.domain.model.UserSound
+import pavball.hr.whitenoise.domain.model.CustomSound
 
 private val Context.dataStore by preferencesDataStore("user_settings")
 
@@ -18,7 +18,7 @@ data class UserSettings(
     val timerMinutes: Int = 0,
     val fadeEnabled: Boolean = true,
     val fadeDuration: Int = 30,
-    val themeMode: String = "system" // "light", "dark", "system"
+    val themeMode: String = "system"
 )
 
 class SettingsDataStore(private val context: Context) {
@@ -32,10 +32,9 @@ class SettingsDataStore(private val context: Context) {
         private val USER_SOUNDS_KEY = stringPreferencesKey("user_sounds")
     }
 
-    // existing settings
     val userSettingsFlow: Flow<UserSettings> = context.dataStore.data.map { prefs ->
         UserSettings(
-            lastSound = prefs[LAST_SOUND_KEY],
+            lastSound = prefs[LAST_SOUND_KEY]?.takeIf { it.isNotBlank() },
             timerMinutes = prefs[TIMER_MINUTES_KEY] ?: 0,
             fadeEnabled = prefs[FADE_ENABLED_KEY] ?: true,
             fadeDuration = prefs[FADE_DURATION_KEY] ?: 30,
@@ -45,7 +44,12 @@ class SettingsDataStore(private val context: Context) {
 
     suspend fun saveSettings(settings: UserSettings) {
         context.dataStore.edit { prefs ->
-            prefs[LAST_SOUND_KEY] = settings.lastSound ?: ""
+            if (settings.lastSound.isNullOrBlank()) {
+                prefs.remove(LAST_SOUND_KEY)
+            } else {
+                prefs[LAST_SOUND_KEY] = settings.lastSound
+            }
+
             prefs[TIMER_MINUTES_KEY] = settings.timerMinutes
             prefs[FADE_ENABLED_KEY] = settings.fadeEnabled
             prefs[FADE_DURATION_KEY] = settings.fadeDuration
@@ -53,18 +57,18 @@ class SettingsDataStore(private val context: Context) {
         }
     }
 
-    // ✅ NEW: user sounds
-    val userSoundsFlow: Flow<List<UserSound>> = context.dataStore.data.map { prefs ->
+    // persisted list of custom sounds (JSON)
+    val userSoundsFlow: Flow<List<CustomSound>> = context.dataStore.data.map { prefs ->
         prefs[USER_SOUNDS_KEY]?.let { json ->
             try {
-                Json.decodeFromString<List<UserSound>>(json)
+                Json.decodeFromString<List<CustomSound>>(json)
             } catch (e: Exception) {
                 emptyList()
             }
         } ?: emptyList()
     }
 
-    suspend fun saveUserSounds(list: List<UserSound>) {
+    suspend fun saveUserSounds(list: List<CustomSound>) {
         val json = Json.encodeToString(list)
         context.dataStore.edit { prefs ->
             prefs[USER_SOUNDS_KEY] = json

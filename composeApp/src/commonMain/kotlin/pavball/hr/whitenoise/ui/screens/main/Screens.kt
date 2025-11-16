@@ -5,6 +5,7 @@ import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import org.jetbrains.compose.resources.painterResource
 import whitenoise.composeapp.generated.resources.Res
+import whitenoise.composeapp.generated.resources.ic_edit
 import whitenoise.composeapp.generated.resources.ic_home
 import whitenoise.composeapp.generated.resources.ic_settings
 
@@ -14,6 +15,13 @@ sealed class Screens(val route: String, val title: String, val icon: @Composable
             route = "home",
             title = "Home",
             icon = { painterResource(Res.drawable.ic_home) }
+        )
+
+    data object ManageCustomSounds :
+        Screens(
+            route = "manage_sounds",
+            title = "Custom Sounds",
+            icon = { painterResource(Res.drawable.ic_edit) }
         )
 
     data object Options :
