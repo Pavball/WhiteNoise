@@ -11,7 +11,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.grid.GridCells
-import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -38,7 +37,6 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
 import org.jetbrains.compose.resources.painterResource
 import pavball.hr.whitenoise.domain.model.rememberSoundPicker
 import pavball.hr.whitenoise.ui.components.NowPlayingCard
@@ -107,7 +105,10 @@ internal fun HomeScreen(
             Button(
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp),
                 onClick = { expanded = !expanded },
-                colors = ButtonDefaults.buttonColors(containerColor = Color.Blue.copy(alpha = 0.5f)),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Color.Blue.copy(alpha = 0.5f),
+                    contentColor = Color.White
+                ),
                 shape = RoundedCornerShape(12.dp),
                 border = BorderStroke(1.dp, Color.Black.copy(alpha = 0.75f))
             ) {
@@ -138,7 +139,10 @@ internal fun HomeScreen(
             ) {
                 Button(
                     onClick = { launchSoundPicker() },
-                    colors = ButtonDefaults.buttonColors(containerColor = Color.Blue.copy(alpha = 0.5f))
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Color.Blue.copy(alpha = 0.5f),
+                        contentColor = Color.White
+                    )
                 ) {
                     Text("Add Custom Sound")
                 }
@@ -205,7 +209,8 @@ internal fun HomeScreen(
                     colors = ButtonDefaults.buttonColors(
                         containerColor = if (state.timerSelectedMinutes == minutes)
                             Color.Blue.copy(alpha = 0.7f)
-                        else Color.Gray.copy(alpha = 0.4f)
+                        else Color.Gray.copy(alpha = 0.4f),
+                        contentColor = Color.White
                     )
                 ) {
                     Text("$minutes min")
