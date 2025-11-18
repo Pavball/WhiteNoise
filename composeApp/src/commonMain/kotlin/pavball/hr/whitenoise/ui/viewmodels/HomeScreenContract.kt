@@ -34,16 +34,13 @@ internal data class MainScreenViewState(
             "Thunder Rain" to "thunder"
         )
 
-        val defaultTimerOptions = listOf(5, 10, 15)
+        val defaultTimerOptions = listOf(5, 10, 15, 20, 25, 30)
     }
 }
 
-
-internal abstract class MainScreenViewModel :
-    BaseViewModel<MainScreenViewState>(MainScreenViewState()) {
-
+internal abstract class MainScreenViewModel : BaseViewModel<MainScreenViewState>(MainScreenViewState()) {
     abstract val userSounds: StateFlow<List<CustomSound>>
-    abstract val pendingRename: StateFlow<CustomSound?>
+    abstract val pendingRename: StateFlow<CustomSound?> // used by UI to open rename dialog immediately
 
     abstract fun playSound(soundId: String)
     abstract fun pauseSound()
@@ -57,9 +54,12 @@ internal abstract class MainScreenViewModel :
     abstract fun saveThemeModeToUserPrefs(themeMode: String)
     abstract fun updateSelectedTimer(minutes: Int)
 
-    abstract fun addUserSound(name: String, id: String)
-    abstract fun removeUserSound(id: String)
+    // custom sound management
+    abstract fun addUserSound(displayName: String, uri: String)
     abstract fun renameCustomSound(id: String, newName: String)
+    abstract fun removeUserSound(id: String)
     abstract fun clearPendingRename()
+    abstract fun updateFadeDuration(newValue: Int)
+    abstract fun updateFadeEnabled(enabled: Boolean)
 }
 

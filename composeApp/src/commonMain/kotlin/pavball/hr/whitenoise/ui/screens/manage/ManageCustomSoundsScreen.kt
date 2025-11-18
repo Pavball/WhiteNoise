@@ -1,5 +1,6 @@
 package pavball.hr.whitenoise.ui.screens.manage
 
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -11,7 +12,6 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import androidx.navigation.NavController
 import org.jetbrains.compose.resources.painterResource
 import pavball.hr.whitenoise.domain.model.CustomSound
 import whitenoise.composeapp.generated.resources.Res
@@ -20,7 +20,6 @@ import whitenoise.composeapp.generated.resources.ic_edit
 
 @Composable
 fun ManageCustomSoundsScreen(
-    navController: NavController,
     customSounds: List<CustomSound>,
     onRename: (CustomSound, String) -> Unit,
     onDelete: (CustomSound) -> Unit
@@ -28,7 +27,9 @@ fun ManageCustomSoundsScreen(
     var editingSound by remember { mutableStateOf<CustomSound?>(null) }
     var editingName by remember { mutableStateOf("") }
 
-    // ---- Rename Dialog ----
+    var deletingSound by remember { mutableStateOf<CustomSound?>(null) } // <- for delete confirmation
+
+    // -------------------- Rename Dialog --------------------
     if (editingSound != null) {
         AlertDialog(
             onDismissRequest = { editingSound = null },
@@ -42,92 +43,70 @@ fun ManageCustomSoundsScreen(
                 )
             },
             confirmButton = {
-                TextButton(
-                    onClick = {
-                        onRename(editingSound!!, editingName.trim())
-                        editingSound = null
-                    }
-                ) { Text("Save") }
+                TextButton(onClick = {
+                    onRename(editingSound!!, editingName.trim())
+                    editingSound = null
+                }) { Text("Save") }
             },
             dismissButton = {
-                TextButton(onClick = { editingSound = null }) {
-                    Text("Cancel")
-                }
+                TextButton(onClick = { editingSound = null }) { Text("Cancel") }
             }
         )
     }
 
-    // ---- Main Screen Content ----
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(16.dp)
-    ) {
-
-        Text(
-            "Manage Custom Sounds",
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold
+    // -------------------- Delete Confirmation Dialog --------------------
+    if (deletingSound != null) {
+        AlertDialog(
+            onDismissRequest = { deletingSound = null },
+            title = { Text("Delete Sound") },
+            text = { Text("Are you sure you want to delete \"${deletingSound!!.displayName}\"?") },
+            confirmButton = {
+                TextButton(onClick = {
+                    onDelete(deletingSound!!)
+                    deletingSound = null
+                }) { Text("Delete", color = Color.Red) }
+            },
+            dismissButton = {
+                TextButton(onClick = { deletingSound = null }) { Text("Cancel") }
+            }
         )
+    }
 
+    Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
+        Text("Manage Custom Sounds", style = MaterialTheme.typography.headlineSmall, fontWeight = FontWeight.Bold)
         Spacer(Modifier.height(16.dp))
 
         if (customSounds.isEmpty()) {
-            Box(
-                modifier = Modifier.fillMaxSize(),
-                contentAlignment = Alignment.Center
-            ) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text("No custom sounds added yet.")
             }
         } else {
-            LazyColumn(
-                verticalArrangement = Arrangement.spacedBy(12.dp),
-                modifier = Modifier.fillMaxSize()
-            ) {
+            LazyColumn(verticalArrangement = Arrangement.spacedBy(12.dp), modifier = Modifier.fillMaxSize()) {
                 items(customSounds) { sound ->
-
                     Surface(
                         tonalElevation = 3.dp,
                         shape = RoundedCornerShape(12.dp),
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {    // click row to rename
+                                editingSound = sound
+                                editingName = sound.displayName
+                            }
                     ) {
                         Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp),
+                            modifier = Modifier.fillMaxWidth().padding(16.dp),
                             verticalAlignment = Alignment.CenterVertically,
                             horizontalArrangement = Arrangement.SpaceBetween
                         ) {
-
-                            // Sound name + URI small text
                             Column {
                                 Text(sound.displayName, fontWeight = FontWeight.Medium)
-                                Spacer(Modifier.height(4.dp))
-                                Text(
-                                    sound.id,
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = Color.Gray
-                                )
                             }
 
                             Row {
-                                IconButton(
-                                    onClick = {
-                                        editingSound = sound
-                                        editingName = sound.displayName
-                                    }
-                                ) {
-                                    Icon(painter = painterResource(Res.drawable.ic_edit), contentDescription = "Rename")
-                                }
-
-                                IconButton(
-                                    onClick = { onDelete(sound) }
-                                ) {
-                                    Icon(
-                                        painterResource(Res.drawable.ic_delete),
-                                        contentDescription = "Delete",
-                                        tint = Color.Red
-                                    )
+                                IconButton(onClick = {
+                                    deletingSound = sound
+                                }) {
+                                    Icon(painter = painterResource(Res.drawable.ic_delete), contentDescription = "Delete", tint = Color.Red)
                                 }
                             }
                         }

@@ -2,7 +2,6 @@ package pavball.hr.whitenoise.ui.screens.main
 
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.painter.Painter
-import androidx.compose.ui.graphics.vector.ImageVector
 import org.jetbrains.compose.resources.painterResource
 import whitenoise.composeapp.generated.resources.Res
 import whitenoise.composeapp.generated.resources.ic_edit

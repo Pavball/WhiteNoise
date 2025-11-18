@@ -1,0 +1,19 @@
+CREATE TABLE custom_sounds(
+    id TEXT NOT NULL PRIMARY KEY,
+    display_name TEXT NOT NULL,
+    uri TEXT NOT NULL,
+    added_at INTEGER NOT NULL
+);
+
+selectAll:
+SELECT * FROM custom_sounds;
+
+insertSound:
+INSERT OR REPLACE INTO custom_sounds(id, display_name, uri, added_at)
+VALUES (?, ?, ?, ?);
+
+deleteSound:
+DELETE FROM custom_sounds WHERE id = ?;
+
+updateName:
+UPDATE custom_sounds SET display_name = ? WHERE id = ?;

@@ -6,6 +6,8 @@ plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.composeMultiplatform)
     alias(libs.plugins.composeCompiler)
+    alias(libs.plugins.sqlDelight)
+
 }
 
 kotlin {
@@ -61,10 +63,13 @@ kotlin {
             implementation(libs.navigation.compose)
             implementation(libs.androidx.datastore.preferences)
 
+            implementation(libs.sqldelight.android)
         }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)
             implementation(libs.koin.core)
+
+            implementation(libs.sqldelight.native)
         }
         commonMain.dependencies {
             implementation(libs.navigation.compose)
@@ -103,6 +108,8 @@ kotlin {
             implementation(libs.compottie)
             implementation(libs.compottie.dot)
             implementation(libs.compottie.network)
+
+            implementation(libs.sqldelight.coroutines)
         }
     }
 }
@@ -134,5 +141,11 @@ android {
     }
 }
 
-
-
+sqldelight {
+    databases {
+        create("AppDatabase") {
+            packageName.set("pavball.hr.whitenoise.db")
+            schemaOutputDirectory.set(file("src/commonMain/sqldelight/databases"))
+        }
+    }
+}

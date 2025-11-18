@@ -3,12 +3,17 @@ package pavball.hr.whitenoise.ui.screens.home
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyHorizontalGrid
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -35,7 +40,6 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import org.jetbrains.compose.resources.painterResource
-import org.koin.compose.viewmodel.koinViewModel
 import pavball.hr.whitenoise.domain.model.rememberSoundPicker
 import pavball.hr.whitenoise.ui.components.NowPlayingCard
 import pavball.hr.whitenoise.ui.components.RenameSoundDialog
@@ -50,30 +54,27 @@ import whitenoise.composeapp.generated.resources.ic_stop
 @Composable
 internal fun HomeScreen(
     modifier: Modifier = Modifier,
-    navController: NavController,
     viewModel: MainScreenViewModel
 ) {
     val state by viewModel.viewState<MainScreenViewState>()
         .collectAsState(initial = MainScreenViewState())
 
     var expanded by rememberSaveable { mutableStateOf(false) }
-    var fadeEnabled by rememberSaveable { mutableStateOf(true) }
-    var chosenMinute by rememberSaveable { mutableStateOf(0) }
 
     val customSounds by viewModel.userSounds.collectAsState()
-    val pendingRename by viewModel.pendingRename.collectAsState()
 
     val combinedSounds = remember(state.sounds, customSounds) {
         state.sounds + customSounds.map { it.displayName to it.id }
     }
 
     val selectedSoundLabel =
-        combinedSounds.firstOrNull { it.second == state.currentSound }?.first
-            ?: "Select sound"
+        combinedSounds.firstOrNull { it.second == state.currentSound }?.first ?: "Select sound"
+    val pendingRename by viewModel.pendingRename.collectAsState()
 
     val launchSoundPicker = rememberSoundPicker { picked ->
         if (picked != null) {
-            viewModel.addUserSound(picked.displayName, picked.id)
+            // add saved sound and show rename dialog
+            viewModel.addUserSound(picked.displayName, picked.uri)
         }
     }
 
@@ -83,9 +84,11 @@ internal fun HomeScreen(
         else 0f
     }
 
-    // UI
-    Column(modifier = modifier.fillMaxSize().padding(16.dp), verticalArrangement = Arrangement.Center, horizontalAlignment = Alignment.CenterHorizontally) {
-
+    Column(
+        modifier = modifier.fillMaxSize().padding(16.dp),
+        verticalArrangement = Arrangement.Center,
+        horizontalAlignment = Alignment.CenterHorizontally
+    ) {
         NowPlayingCard(
             soundLabel = if (!state.isCleared) (selectedSoundLabel) else ("Select sound"),
             soundKey = state.currentSound,
@@ -100,7 +103,6 @@ internal fun HomeScreen(
 
         Spacer(Modifier.height(24.dp))
 
-        // Sound selector + add/manage
         Column(horizontalAlignment = Alignment.CenterHorizontally) {
             Button(
                 modifier = Modifier.fillMaxWidth().padding(horizontal = 24.dp),
@@ -117,9 +119,11 @@ internal fun HomeScreen(
                             onClick = {
                                 expanded = false
                                 viewModel.updateSelectedSoundKey(id)
-                                // start playing on user click
                                 viewModel.playSound(id)
-                                viewModel.startTimer(if (chosenMinute != 0) chosenMinute else 1, fadeEnabled)
+                                viewModel.startTimer(
+                                    if (state.timerSelectedMinutes != 0) state.timerSelectedMinutes else 1,
+                                    state.fadeEnabled
+                                )
                             }
                         )
                     }
@@ -128,53 +132,82 @@ internal fun HomeScreen(
 
             Spacer(Modifier.height(8.dp))
 
-            Row(horizontalArrangement = Arrangement.spacedBy(4.dp), verticalAlignment = Alignment.CenterVertically) {
-                Button(onClick = { launchSoundPicker() }, colors = ButtonDefaults.buttonColors(containerColor = Color.Blue.copy(alpha = 0.5f))) {
-                    Text("Add Custom Sound")
-                }
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
                 Button(
-                    onClick = { navController.navigate("manage_sounds") }
+                    onClick = { launchSoundPicker() },
+                    colors = ButtonDefaults.buttonColors(containerColor = Color.Blue.copy(alpha = 0.5f))
                 ) {
-                    Text("Manage custom sounds", softWrap = false)
+                    Text("Add Custom Sound")
                 }
             }
         }
 
         Spacer(Modifier.height(24.dp))
 
-        // Controls (unchanged behaviour)
-        Row(horizontalArrangement = Arrangement.spacedBy(24.dp), verticalAlignment = Alignment.CenterVertically) {
+        Row(
+            horizontalArrangement = Arrangement.spacedBy(24.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
             IconButton(onClick = {
-                if (state.isPlaying) { viewModel.pauseSound(); viewModel.pauseTimer() }
-                else {
+                if (state.isPlaying) {
+                    viewModel.pauseSound(); viewModel.pauseTimer()
+                } else {
                     viewModel.playSound(state.selectedSoundKey)
-                    if (state.remainingTime == null) viewModel.startTimer(if (chosenMinute != 0) chosenMinute else 1, fadeEnabled)
+                    if (state.remainingTime == null) viewModel.startTimer(
+                        if (state.timerSelectedMinutes != 0) state.timerSelectedMinutes else 1,
+                        state.fadeEnabled
+                    )
                     else viewModel.resumeTimer(onFadeStart = {}, onTimerFinished = {})
                 }
             }) {
-                Icon(painterResource(if (state.isPlaying) Res.drawable.ic_pause else Res.drawable.ic_play), contentDescription = null, tint = Color.Blue)
+                Icon(
+                    painterResource(if (state.isPlaying) Res.drawable.ic_pause else Res.drawable.ic_play),
+                    contentDescription = null,
+                    tint = Color.Blue
+                )
             }
 
             IconButton(onClick = { viewModel.stopSound(); viewModel.cancelTimer() }) {
-                Icon(painterResource(Res.drawable.ic_stop), contentDescription = null, tint = Color.Blue)
+                Icon(
+                    painterResource(Res.drawable.ic_stop),
+                    contentDescription = null,
+                    tint = Color.Blue
+                )
             }
         }
 
         Spacer(Modifier.height(24.dp))
 
-        LinearProgressIndicator(progress = { progress }, modifier = Modifier.fillMaxWidth(0.8f).height(8.dp).clip(RoundedCornerShape(12.dp)), color = Color.Blue.copy(alpha = 0.7f), trackColor = Color.LightGray.copy(alpha = 0.3f))
+        LinearProgressIndicator(
+            progress = { progress },
+            modifier = Modifier.fillMaxWidth(0.8f).height(8.dp).clip(RoundedCornerShape(12.dp)),
+            color = Color.Blue.copy(alpha = 0.7f),
+            trackColor = Color.LightGray.copy(alpha = 0.3f)
+        )
 
         Spacer(Modifier.height(24.dp))
 
-        // Timer selection
         Text("Sleep Timer", style = MaterialTheme.typography.titleMedium)
         Spacer(Modifier.height(8.dp))
-        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            state.timerOptions.forEach { minutes ->
-                Button(onClick = {
-                    chosenMinute = minutes
-                    viewModel.updateSelectedTimer(minutes)
-                }, colors = ButtonDefaults.buttonColors(containerColor = if (chosenMinute == minutes) Color.Blue.copy(alpha = 0.7f) else Color.Gray.copy(alpha = 0.4f))) {
+        LazyVerticalGrid(
+            columns = GridCells.Fixed(3),
+            modifier = Modifier
+                .fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            contentPadding = PaddingValues(horizontal = 8.dp)
+        ) {
+            items(state.timerOptions) { minutes ->
+                Button(
+                    onClick = { viewModel.updateSelectedTimer(minutes) },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (state.timerSelectedMinutes == minutes)
+                            Color.Blue.copy(alpha = 0.7f)
+                        else Color.Gray.copy(alpha = 0.4f)
+                    )
+                ) {
                     Text("$minutes min")
                 }
             }
@@ -183,12 +216,15 @@ internal fun HomeScreen(
         Button(onClick = { viewModel.cancelTimer() }) { Text("Cancel") }
         Spacer(Modifier.height(12.dp))
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Checkbox(checked = fadeEnabled, onCheckedChange = { fadeEnabled = it })
+            Checkbox(
+                checked = state.fadeEnabled,
+                onCheckedChange = { viewModel.updateFadeEnabled(it) }
+            )
             Text("Fade out last 30s")
         }
     }
 
-    // If a new custom sound was just added, show the rename dialog immediately
+    // Show rename dialog when pendingRename is set by the ViewModel
     pendingRename?.let { cs ->
         RenameSoundDialog(
             currentName = cs.displayName,

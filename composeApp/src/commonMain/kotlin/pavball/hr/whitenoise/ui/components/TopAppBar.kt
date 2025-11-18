@@ -36,19 +36,6 @@ fun TopToolbar(navController: NavController, modifier: Modifier = Modifier) {
             )
         },
         colors = TopAppBarDefaults.topAppBarColors()
-            .copy(containerColor = Color.Blue.copy(alpha = 0.5f)),
-        navigationIcon = {
-            if (currentRoute?.startsWith("options") == true) {
-                IconButton(onClick = {
-                    navController.navigate("home")
-                }) {
-                    Image(
-                        painter = painterResource(Res.drawable.ic_back),
-                        contentDescription = "Back Button",
-                        modifier = modifier.size(16.dp)
-                    )
-                }
-            }
-        }
+            .copy(containerColor = Color.Blue.copy(alpha = 0.5f))
     )
 }
