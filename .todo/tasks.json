@@ -71,5 +71,30 @@
       }
     },
     "isImported": false
+  },
+  {
+    "id": "TASK_15",
+    "priority": "LOW",
+    "tags": [
+      "Backend",
+      "UI"
+    ],
+    "title": "Color Picker",
+    "description": "Add Color Picker to renaming dialog and ability to change it\nSave the color into database and use it to change color of Naming Card",
+    "status": "TODO",
+    "date": {
+      "date": {
+        "year": 2025,
+        "month": 11,
+        "day": 18
+      },
+      "time": {
+        "hour": 22,
+        "minute": 26,
+        "second": 39,
+        "nano": 758266200
+      }
+    },
+    "isImported": false
   }
 ]

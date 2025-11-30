@@ -1,7 +1,6 @@
 package pavball.hr.whitenoise.domain.model
 
 import androidx.compose.runtime.Composable
-import kotlinx.serialization.Serializable
 
 @Composable
 expect fun rememberSoundPicker(

@@ -2,18 +2,22 @@ CREATE TABLE custom_sounds(
     id TEXT NOT NULL PRIMARY KEY,
     display_name TEXT NOT NULL,
     uri TEXT NOT NULL,
-    added_at INTEGER NOT NULL
+    added_at INTEGER NOT NULL,
+    colorId TEXT NOT NULL DEFAULT '0xFF7986CB'
 );
 
 selectAll:
 SELECT * FROM custom_sounds;
 
 insertSound:
-INSERT OR REPLACE INTO custom_sounds(id, display_name, uri, added_at)
-VALUES (?, ?, ?, ?);
+INSERT OR REPLACE INTO custom_sounds(id, display_name, uri, added_at, colorId)
+VALUES (?, ?, ?, ?, ?);
 
 deleteSound:
 DELETE FROM custom_sounds WHERE id = ?;
 
 updateName:
 UPDATE custom_sounds SET display_name = ? WHERE id = ?;
+
+updateColor:
+UPDATE custom_sounds SET colorId = ? WHERE id = ?;

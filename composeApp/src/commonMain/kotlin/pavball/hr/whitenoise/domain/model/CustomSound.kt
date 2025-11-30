@@ -10,7 +10,8 @@ data class CustomSound @OptIn(ExperimentalTime::class) constructor(
     val id: String,         // unique id (we use the uri string by default, but you can change)
     val displayName: String,
     val uri: String,
-    val addedAt: Long = Clock.System.now().toEpochMilliseconds()
+    val addedAt: Long = Clock.System.now().toEpochMilliseconds(),
+    val colorId: String
 )
 
 internal fun Custom_sounds.toCustomSound() =
@@ -18,5 +19,6 @@ internal fun Custom_sounds.toCustomSound() =
         id = id,
         displayName = display_name,
         uri = uri,
-        addedAt = added_at
+        addedAt = added_at,
+        colorId = colorId
     )

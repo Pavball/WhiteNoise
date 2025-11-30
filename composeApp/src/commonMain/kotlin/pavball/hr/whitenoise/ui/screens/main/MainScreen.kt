@@ -40,7 +40,10 @@ fun MainScreen() {
                 ManageCustomSoundsScreen(
                     customSounds = viewModel.userSounds.collectAsState().value,
                     onRename = { sound, newName -> viewModel.renameCustomSound(sound.id, newName) },
-                    onDelete = { sound -> viewModel.removeUserSound(sound.id) }
+                    onDelete = { sound -> viewModel.removeUserSound(sound.id) },
+                    onColorChange = { cs, colorId ->
+                        viewModel.updateCustomSoundColor(id = cs.id, colorId = colorId)
+                    },
                 )
             }
             composable(Screens.Options.route) {

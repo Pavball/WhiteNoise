@@ -43,7 +43,8 @@ actual fun rememberSoundPicker(
                         id = uri.toString(),
                         displayName = name,
                         uri = uri.toString(),
-                        addedAt = System.currentTimeMillis()
+                        addedAt = System.currentTimeMillis(),
+                        colorId = ""
                     )
                 )
             } else {

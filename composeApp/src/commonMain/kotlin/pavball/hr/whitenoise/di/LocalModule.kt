@@ -8,6 +8,8 @@ import pavball.hr.whitenoise.domain.usecase.GetCustomSoundUseCase
 import pavball.hr.whitenoise.domain.usecase.InsertCustomSound
 import pavball.hr.whitenoise.domain.usecase.InsertCustomSoundUseCase
 import pavball.hr.whitenoise.domain.usecase.UpdateCustomSound
+import pavball.hr.whitenoise.domain.usecase.UpdateCustomSoundColor
+import pavball.hr.whitenoise.domain.usecase.UpdateCustomSoundColorUseCase
 import pavball.hr.whitenoise.domain.usecase.UpdateCustomSoundUseCase
 import pavball.hr.whitenoise.repositorites.CustomSoundRepository
 import pavball.hr.whitenoise.repositorites.CustomSoundRepositoryImpl
@@ -29,5 +31,6 @@ val storageModule = module {
     single<GetCustomSoundUseCase> { GetCustomSound(get()) }
     single<InsertCustomSoundUseCase> { InsertCustomSound(get()) }
     single<UpdateCustomSoundUseCase> { UpdateCustomSound(get()) }
+    single<UpdateCustomSoundColorUseCase> { UpdateCustomSoundColor(get()) }
     single<DeleteCustomSoundUseCase> { DeleteCustomSound(get()) }
 }

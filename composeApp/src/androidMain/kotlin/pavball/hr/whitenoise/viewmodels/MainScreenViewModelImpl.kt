@@ -16,6 +16,7 @@ import pavball.hr.whitenoise.domain.model.CustomSound
 import pavball.hr.whitenoise.domain.usecase.DeleteCustomSoundUseCase
 import pavball.hr.whitenoise.domain.usecase.GetCustomSoundUseCase
 import pavball.hr.whitenoise.domain.usecase.InsertCustomSoundUseCase
+import pavball.hr.whitenoise.domain.usecase.UpdateCustomSoundColorUseCase
 import pavball.hr.whitenoise.domain.usecase.UpdateCustomSoundUseCase
 import pavball.hr.whitenoise.ui.components.SettingsDataStore
 import pavball.hr.whitenoise.ui.components.UserSettings
@@ -34,6 +35,7 @@ internal class MainScreenViewModelImpl(
     private val updateCustomSoundUseCase: UpdateCustomSoundUseCase,
     private val deleteCustomSoundUseCase: DeleteCustomSoundUseCase,
     private val insertCustomSoundUseCase: InsertCustomSoundUseCase,
+    private val updateCustomSoundColorUseCase: UpdateCustomSoundColorUseCase
 ) : MainScreenViewModel() {
 
     private val _customSounds = MutableStateFlow<List<CustomSound>>(emptyList())
@@ -43,6 +45,12 @@ internal class MainScreenViewModelImpl(
     private val _pendingRename = MutableStateFlow<CustomSound?>(null)
     override val pendingRename: StateFlow<CustomSound?> =
         _pendingRename.asStateFlow()
+
+    override val currentSoundColorId: String?
+        get() {
+            val id = getCurrentState().currentSound ?: return null
+            return _customSounds.value.firstOrNull { it.id == id }?.colorId
+        }
 
     private var exoPlayer: ExoPlayer? = null
     private var currentSound: String? = null
@@ -90,15 +98,18 @@ internal class MainScreenViewModelImpl(
     // ||                 CUSTOM SOUND SECTION                               ||
     // --------------------------------------------------------------------
     @OptIn(ExperimentalTime::class)
-    override fun addUserSound(displayName: String, uri: String) {
+    override fun addUserSound(displayName: String, uri: String, colorId: String) {
         runCommand {
             val id = uri // using uri string as id; you can use UUID if desired
             val ts = Clock.System.now().toEpochMilliseconds()
-            insertCustomSoundUseCase(id, displayName, uri, ts)
+            insertCustomSoundUseCase(id, displayName, uri, ts, colorId)
             // set pending rename so UI opens dialog
             _pendingRename.value = CustomSound(
-                id = id, displayName =
-                    displayName, uri = uri, addedAt = ts
+                id = id,
+                displayName = displayName,
+                uri = uri,
+                addedAt = ts,
+                colorId = colorId
             )
         }
     }
@@ -106,6 +117,14 @@ internal class MainScreenViewModelImpl(
     override fun renameCustomSound(id: String, newName: String) {
         runCommand {
             updateCustomSoundUseCase(id, newName)
+            // UI will refresh from DB flow
+            withContext(Dispatchers.Main) { _pendingRename.value = null }
+        }
+    }
+
+    override fun updateCustomSoundColor(id: String, colorId: String) {
+        runCommand {
+            updateCustomSoundColorUseCase(id, colorId)
             // UI will refresh from DB flow
             withContext(Dispatchers.Main) { _pendingRename.value = null }
         }
@@ -387,6 +406,7 @@ internal class MainScreenViewModelImpl(
             }
         }
     }
+
     private suspend fun persistCurrentSettings() {
         settings.saveSettings(getCurrentState().toUserSettings())
     }

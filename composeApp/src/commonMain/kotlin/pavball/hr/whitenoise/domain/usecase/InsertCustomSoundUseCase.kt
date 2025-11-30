@@ -11,7 +11,8 @@ internal interface InsertCustomSoundUseCase {
         id: String,
         displayName: String,
         uri: String,
-        addedAt: Long
+        addedAt: Long,
+        colorId: String
     )
 }
 
@@ -21,8 +22,9 @@ internal class InsertCustomSound(private val customSoundRepository: CustomSoundR
         id: String,
         displayName: String,
         uri: String,
-        addedAt: Long
+        addedAt: Long,
+        colorId: String
     ) =
-        customSoundRepository.insertCustomSound(id, displayName, uri, addedAt)
+        customSoundRepository.insertCustomSound(id, displayName, uri, addedAt, colorId)
 }
 

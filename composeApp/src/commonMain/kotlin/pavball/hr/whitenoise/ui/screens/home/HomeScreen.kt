@@ -37,10 +37,11 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import com.github.skydoves.colorpicker.compose.rememberColorPickerController
 import org.jetbrains.compose.resources.painterResource
 import pavball.hr.whitenoise.domain.model.rememberSoundPicker
+import pavball.hr.whitenoise.ui.components.AddCustomSoundDialog
 import pavball.hr.whitenoise.ui.components.NowPlayingCard
-import pavball.hr.whitenoise.ui.components.RenameSoundDialog
 import pavball.hr.whitenoise.ui.components.formatTime
 import pavball.hr.whitenoise.ui.viewmodels.MainScreenViewModel
 import pavball.hr.whitenoise.ui.viewmodels.MainScreenViewState
@@ -72,7 +73,7 @@ internal fun HomeScreen(
     val launchSoundPicker = rememberSoundPicker { picked ->
         if (picked != null) {
             // add saved sound and show rename dialog
-            viewModel.addUserSound(picked.displayName, picked.uri)
+            viewModel.addUserSound(picked.displayName, picked.uri, picked.colorId)
         }
     }
 
@@ -88,15 +89,14 @@ internal fun HomeScreen(
         horizontalAlignment = Alignment.CenterHorizontally
     ) {
         NowPlayingCard(
-            soundLabel = if (!state.isCleared) (selectedSoundLabel) else ("Select sound"),
+            soundLabel = if (!state.isCleared) selectedSoundLabel else "Select sound",
             soundKey = state.currentSound,
             isPlaying = state.isPlaying,
             subLabel = if (state.remainingTime != null) "Stopping in ${formatTime(state.remainingTime!!)}" else null,
-            listOfColors = when (state.selectedSoundKey) {
-                "ocean" -> listOf(Color(0xFF2196F3), Color(0xFF64B5F6))
-                "forest" -> listOf(Color(0xFF4CAF50), Color(0xFF81C784))
-                else -> listOf(Color(0xFF3F51B5), Color(0xFF7986CB))
-            }
+            listOfColors = resolveGradientColors(
+                soundKey = state.selectedSoundKey,
+                dbColorId = viewModel.currentSoundColorId
+            )
         )
 
         Spacer(Modifier.height(24.dp))
@@ -231,12 +231,77 @@ internal fun HomeScreen(
 
     // Show rename dialog when pendingRename is set by the ViewModel
     pendingRename?.let { cs ->
-        RenameSoundDialog(
+        val controller = rememberColorPickerController()
+
+        AddCustomSoundDialog(
             currentName = cs.displayName,
+            currentColorHex = cs.colorId,
             onDismiss = { viewModel.clearPendingRename() },
             onRename = { newName ->
-                viewModel.renameCustomSound(cs.id, newName)
-            }
+                viewModel.renameCustomSound(id = cs.id, newName = newName)
+            },
+            onColorChange = { colorId ->
+                viewModel.updateCustomSoundColor(id = cs.id, colorId = colorId)
+            },
+            controller = controller
         )
     }
+}
+
+fun resolveGradientColors(
+    soundKey: String?,
+    dbColorId: String?
+): List<Color> {
+    // If database color exists → generate gradient from that color
+    if (dbColorId != null) {
+        val baseColor = dbColorId.let { Color.fromHex(it) }
+        return listOf(baseColor, baseColor.lighten(0.35f))
+    }
+
+    // Fallback for built-in sounds
+    return when (soundKey) {
+        "ocean" -> listOf(Color(0xFF2196F3), Color(0xFF64B5F6))
+        "forest" -> listOf(Color(0xFF4CAF50), Color(0xFF81C784))
+
+        // Add more built-ins here if needed
+        // "rain" -> listOf(...)
+
+        else -> listOf(
+            Color(0xFF3F51B5),
+            Color(0xFF7986CB)
+        )
+    }
+}
+
+fun Color.Companion.fromHex(hex: String?): Color {
+    if (hex.isNullOrBlank()) {
+        return Color(0xFF9E9E9E) // fallback
+    }
+
+    return try {
+        val cleanHex = hex
+            .removePrefix("#")
+            .removePrefix("0x")
+            .trim()
+
+        val colorLong = cleanHex.toLong(16)
+
+        Color(
+            red = ((colorLong shr 16) and 0xFF) / 255f,
+            green = ((colorLong shr 8) and 0xFF) / 255f,
+            blue = (colorLong and 0xFF) / 255f,
+            alpha = 1f
+        )
+    } catch (_: Exception) {
+        Color(0xFF9E9E9E) // fallback if invalid hex
+    }
+}
+
+
+fun Color.lighten(factor: Float = 0.3f): Color {
+    return Color(
+        red = (this.red + (1f - this.red) * factor),
+        green = (this.green + (1f - this.green) * factor),
+        blue = (this.blue + (1f - this.blue) * factor)
+    )
 }

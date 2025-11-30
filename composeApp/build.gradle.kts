@@ -110,6 +110,8 @@ kotlin {
             implementation(libs.compottie.network)
 
             implementation(libs.sqldelight.coroutines)
+
+            implementation(libs.compose.colorpicker)
         }
     }
 }

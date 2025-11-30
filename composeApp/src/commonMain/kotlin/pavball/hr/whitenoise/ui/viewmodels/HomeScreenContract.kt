@@ -20,6 +20,7 @@ internal data class MainScreenViewState(
     val fadeStarted: Boolean = false,
     val timerFinished: Boolean = false,
 
+
     // --- Persistent user settings ---
     val fadeEnabled: Boolean = true,
     val fadeDuration: Int = 30,  // seconds
@@ -55,11 +56,15 @@ internal abstract class MainScreenViewModel : BaseViewModel<MainScreenViewState>
     abstract fun updateSelectedTimer(minutes: Int)
 
     // custom sound management
-    abstract fun addUserSound(displayName: String, uri: String)
+    abstract fun addUserSound(displayName: String, uri: String, colorId: String)
     abstract fun renameCustomSound(id: String, newName: String)
     abstract fun removeUserSound(id: String)
     abstract fun clearPendingRename()
     abstract fun updateFadeDuration(newValue: Int)
     abstract fun updateFadeEnabled(enabled: Boolean)
+    abstract fun updateCustomSoundColor(id: String, colorId: String)
+
+    open val currentSoundColorId: String?
+        get() = null
 }
 
