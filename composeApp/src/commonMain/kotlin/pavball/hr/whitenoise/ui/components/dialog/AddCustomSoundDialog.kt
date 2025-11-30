@@ -1,4 +1,4 @@
-package pavball.hr.whitenoise.ui.components
+package pavball.hr.whitenoise.ui.components.dialog
 
 import androidx.compose.animation.ExperimentalAnimationApi
 import androidx.compose.foundation.background

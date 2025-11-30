@@ -95,7 +95,7 @@ internal class MainScreenViewModelImpl(
     }
 
     // --------------------------------------------------------------------
-    // ||                 CUSTOM SOUND SECTION                               ||
+    // ||                 CUSTOM SOUND SECTION                           ||
     // --------------------------------------------------------------------
     @OptIn(ExperimentalTime::class)
     override fun addUserSound(displayName: String, uri: String, colorId: String) {
