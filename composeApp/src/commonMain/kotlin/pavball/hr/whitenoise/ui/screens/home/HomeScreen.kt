@@ -129,7 +129,7 @@ internal fun HomeScreen(
         item { SpacerHelper(12.dp) }
 
         item {
-            FadeCheckboxSection(state = state, viewModel = viewModel, time = "")
+            FadeCheckboxSection(state = state, viewModel = viewModel)
         }
 
         items(10) {

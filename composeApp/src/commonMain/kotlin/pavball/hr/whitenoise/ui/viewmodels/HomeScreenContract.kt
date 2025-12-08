@@ -8,6 +8,7 @@ internal data class MainScreenViewState(
     val sounds: List<Pair<String, String>> = defaultSounds,
     val customSounds: List<CustomSound> = emptyList(),
     val timerOptions: List<Int> = defaultTimerOptions,
+    val fadeOptions: List<Int> = defaultFadeOutOptions,
     val selectedSoundKey: String = "rain",
 
     val isPlaying: Boolean = false,
@@ -36,6 +37,8 @@ internal data class MainScreenViewState(
         )
 
         val defaultTimerOptions = listOf(5, 10, 15, 20, 25, 30)
+
+        val defaultFadeOutOptions = listOf(5, 10, 15, 20, 25, 30)
     }
 }
 
@@ -53,6 +56,7 @@ internal abstract class MainScreenViewModel : BaseViewModel<MainScreenViewState>
     abstract fun cancelTimer()
     abstract fun updateSelectedSoundKey(selectedSoundKey: String)
     abstract fun saveThemeModeToUserPrefs(themeMode: String)
+    abstract fun saveFadeOutTimeToUserPrefs(fadeTime: Int)
     abstract fun updateSelectedTimer(minutes: Int)
 
     // custom sound management

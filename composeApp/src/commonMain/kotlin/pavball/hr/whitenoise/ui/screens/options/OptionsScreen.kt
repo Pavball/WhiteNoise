@@ -19,7 +19,10 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.FontScaling
+import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import org.koin.compose.viewmodel.koinViewModel
 import pavball.hr.whitenoise.ui.components.drawFadingEdges
@@ -36,6 +39,7 @@ fun OptionsScreen(
     val state by viewModel.viewState<MainScreenViewState>()
         .collectAsState(initial = MainScreenViewState())
     var themeExpanded by rememberSaveable { mutableStateOf(false) }
+    var fadeOutExpanded by rememberSaveable { mutableStateOf(false) }
 
     val scrollableState = rememberLazyListState()
 
@@ -49,6 +53,9 @@ fun OptionsScreen(
     ) {
 
         item {
+
+            Text("Theme", fontSize = 18.sp, modifier = Modifier.padding(start = 24.dp, 24.dp, end = 24.dp))
+
             Button(
                 modifier = Modifier.padding(24.dp),
                 onClick = { themeExpanded = !themeExpanded }) {
@@ -73,7 +80,27 @@ fun OptionsScreen(
         }
 
         item {
-            Text("This is text string for item in options", modifier = Modifier.padding(24.dp))
+            Text("Fade Out Time", fontSize = 18.sp, modifier = Modifier.padding(start = 24.dp, 24.dp, end = 24.dp))
+
+            Button(
+                modifier = Modifier.padding(24.dp),
+                onClick = { fadeOutExpanded = !fadeOutExpanded }) {
+                Text("Fade Time: ${state.fadeDuration}")
+
+                DropdownMenu(
+                    expanded = fadeOutExpanded,
+                    onDismissRequest = { fadeOutExpanded = false }) {
+                    state.fadeOptions.forEach { mode ->
+                        DropdownMenuItem(
+                            text = { Text(text = mode.toString()) },
+                            onClick = {
+                                fadeOutExpanded = false
+                                viewModel.saveFadeOutTimeToUserPrefs(mode)
+                            }
+                        )
+                    }
+                }
+            }
 
             HorizontalDivider(thickness = 2.dp, color = Color.Black.copy(alpha = 0.4f))
         }

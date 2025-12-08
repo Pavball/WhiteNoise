@@ -361,12 +361,21 @@ internal class MainScreenViewModelImpl(
         }
     }
 
+    override fun saveFadeOutTimeToUserPrefs(fadeTime: Int) {
+        runCommand {
+            updateState { copy(fadeDuration = fadeTime) }
+            persistCurrentSettings()
+        }
+    }
+
     // --------------------------------------------------------------------
     // ||                 HELPER FUNCTIONS SECTION                       ||
     // --------------------------------------------------------------------
 
     private fun fadeOutVolume() = runCommand {
-        val fadeDurationMs = 30_000L
+        val currentState = getCurrentState()
+
+        val fadeDurationMs = currentState.fadeDuration.toLong()
         val steps = 30
         val delayPerStep = fadeDurationMs / steps
         val volumeStep = 1f / steps

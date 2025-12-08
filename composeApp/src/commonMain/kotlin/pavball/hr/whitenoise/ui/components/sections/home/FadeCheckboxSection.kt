@@ -13,8 +13,7 @@ import pavball.hr.whitenoise.ui.viewmodels.MainScreenViewState
 @Composable
 internal fun FadeCheckboxSection(
     state: MainScreenViewState,
-    viewModel: MainScreenViewModel,
-    time: String
+    viewModel: MainScreenViewModel
 ) {
     Row(verticalAlignment = Alignment.CenterVertically) {
         Checkbox(
@@ -22,8 +21,7 @@ internal fun FadeCheckboxSection(
             colors = CheckboxDefaults.colors().copy(checkedBoxColor = Color.Blue.copy(alpha = 0.7f), checkedCheckmarkColor = Color.White),
             onCheckedChange = { viewModel.updateFadeEnabled(it) }
         )
-        Text("Fade out last 30s")
+        Text("Fade out last ${state.fadeDuration} sec")
 
-        //Text("Fade out last {$time}s")
     }
 }
