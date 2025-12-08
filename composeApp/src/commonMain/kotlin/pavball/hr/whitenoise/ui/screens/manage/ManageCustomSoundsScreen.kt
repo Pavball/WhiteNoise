@@ -5,6 +5,7 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -20,6 +21,7 @@ import com.github.skydoves.colorpicker.compose.ColorPickerController
 import com.github.skydoves.colorpicker.compose.HsvColorPicker
 import org.jetbrains.compose.resources.painterResource
 import pavball.hr.whitenoise.domain.model.CustomSound
+import pavball.hr.whitenoise.ui.components.drawFadingEdges
 import pavball.hr.whitenoise.ui.screens.home.fromHex
 import pavball.hr.whitenoise.ui.screens.home.lighten
 import whitenoise.composeapp.generated.resources.Res
@@ -38,6 +40,7 @@ fun ManageCustomSoundsScreen(
     // delete confirmation
     var deletingSound by remember { mutableStateOf<CustomSound?>(null) }
 
+    val scrollableState = rememberLazyListState()
     // -------------------- Rename + Color Dialog --------------------
     editingSound?.let { sound ->
         val controller = remember { ColorPickerController() }
@@ -155,7 +158,10 @@ fun ManageCustomSoundsScreen(
         } else {
             LazyColumn(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
-                modifier = Modifier.fillMaxSize()
+                modifier = Modifier
+                    .fillMaxSize()
+                    .drawFadingEdges(scrollableState),
+                state = scrollableState
             ) {
                 items(customSounds) { sound ->
                     Surface(

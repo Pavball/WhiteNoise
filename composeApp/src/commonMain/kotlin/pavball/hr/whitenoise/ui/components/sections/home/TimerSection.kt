@@ -54,9 +54,4 @@ internal fun TimerSection(
 
     SpacerHelper(16.dp)
 
-    Button(onClick = { viewModel.cancelTimer() }) {
-        Text("Cancel")
-    }
-
-    SpacerHelper(24.dp)
 }

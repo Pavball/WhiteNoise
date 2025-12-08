@@ -44,7 +44,7 @@ internal fun SoundSelectorSection(
                 .padding(horizontal = 24.dp),
             onClick = { onExpandedChange(!expanded) },
             colors = ButtonDefaults.buttonColors(
-                containerColor = Color.Blue.copy(alpha = 0.5f),
+                containerColor = Color.Blue.copy(alpha = 0.7f),
                 contentColor = Color.White
             ),
             shape = RoundedCornerShape(12.dp),
@@ -76,7 +76,7 @@ internal fun SoundSelectorSection(
         Button(
             onClick = { launchSoundPicker() },
             colors = ButtonDefaults.buttonColors(
-                containerColor = Color.Blue.copy(alpha = 0.5f),
+                containerColor = Color.Blue.copy(alpha = 0.7f),
                 contentColor = Color.White
             )
         ) { Text("Add Custom Sound") }

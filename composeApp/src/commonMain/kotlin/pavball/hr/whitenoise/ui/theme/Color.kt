@@ -6,6 +6,7 @@ import androidx.compose.ui.graphics.Color
 
 val BluePrimary = Color(0xFF2196F3)
 val BlueSecondary = Color(0xFF64B5F6)
+val CyanPrimary = Color(0xFF28C6B1)
 val DarkBackground = Color(0xFF121212)
 val LightBackground = Color(0xFFFFFFFF)
 

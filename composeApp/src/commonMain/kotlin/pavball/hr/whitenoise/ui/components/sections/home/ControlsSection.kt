@@ -51,7 +51,7 @@ internal fun ControlsSection(
             Icon(
                 painterResource(if (state.isPlaying) Res.drawable.ic_pause else Res.drawable.ic_play),
                 contentDescription = null,
-                tint = Color.Blue
+                tint = Color.Blue.copy(alpha = 0.7f)
             )
         }
 
@@ -62,7 +62,7 @@ internal fun ControlsSection(
             Icon(
                 painterResource(Res.drawable.ic_stop),
                 contentDescription = null,
-                tint = Color.Blue
+                tint = Color.Blue.copy(alpha = 0.7f)
             )
         }
     }
