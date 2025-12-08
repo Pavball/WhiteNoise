@@ -282,7 +282,7 @@ internal class MainScreenViewModelImpl(
                 val remaining = endTime?.let { it - Clock.System.now() } ?: break
                 remainingTimeMs = remaining.inWholeMilliseconds.coerceAtLeast(0)
                 if (fadeOutEnabled && !fadeStarted && remainingTimeMs <=
-                    30_000L
+                    state.fadeDuration.toLong()
                 ) {
                     fadeStarted = true
                     onFadeStart()
