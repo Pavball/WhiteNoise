@@ -132,10 +132,6 @@ internal fun HomeScreen(
             FadeCheckboxSection(state = state, viewModel = viewModel)
         }
 
-        items(10) {
-            Text("test")
-        }
-
     }
 
 // --------------------------------------------------------------------
