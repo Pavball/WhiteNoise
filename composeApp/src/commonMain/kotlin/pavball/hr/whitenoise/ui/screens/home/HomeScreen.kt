@@ -20,6 +20,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.github.skydoves.colorpicker.compose.rememberColorPickerController
+import org.jetbrains.compose.resources.stringResource
 import pavball.hr.whitenoise.domain.model.rememberSoundPicker
 import pavball.hr.whitenoise.ui.components.SpacerHelper
 import pavball.hr.whitenoise.ui.components.dialog.AddCustomSoundDialog
@@ -32,6 +33,9 @@ import pavball.hr.whitenoise.ui.components.sections.home.SoundSelectorSection
 import pavball.hr.whitenoise.ui.components.sections.home.TimerSection
 import pavball.hr.whitenoise.ui.viewmodels.MainScreenViewModel
 import pavball.hr.whitenoise.ui.viewmodels.MainScreenViewState
+import whitenoise.composeapp.generated.resources.Res
+import whitenoise.composeapp.generated.resources.select_sound
+import whitenoise.composeapp.generated.resources.stopping_in
 
 @Composable
 internal fun HomeScreen(
@@ -51,7 +55,7 @@ internal fun HomeScreen(
     }
 
     val selectedSoundLabel =
-        combinedSounds.firstOrNull { it.second == state.currentSound }?.first ?: "Select sound"
+        combinedSounds.firstOrNull { it.second == state.currentSound }?.first ?: stringResource(Res.string.select_sound)
     val pendingRename by viewModel.pendingRename.collectAsState()
 
     val launchSoundPicker = rememberSoundPicker { picked ->
@@ -78,11 +82,11 @@ internal fun HomeScreen(
 
         item {
             NowPlayingCardSection(
-                soundLabel = if (!state.isCleared) selectedSoundLabel else "Select sound",
+                soundLabel = if (!state.isCleared) selectedSoundLabel else stringResource(Res.string.select_sound),
                 soundKey = state.currentSound,
                 isPlaying = state.isPlaying,
                 subLabel = if (state.remainingTime != null)
-                    "Stopping in ${formatTime(state.remainingTime!!)}"
+                    "${stringResource(Res.string.stopping_in)} ${formatTime(state.remainingTime!!)}"
                 else null,
                 listOfColors = resolveGradientColors(
                     soundKey = state.selectedSoundKey,

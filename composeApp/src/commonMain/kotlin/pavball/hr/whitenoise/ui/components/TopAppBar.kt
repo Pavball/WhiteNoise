@@ -11,6 +11,10 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
+import org.jetbrains.compose.resources.stringResource
+import whitenoise.composeapp.generated.resources.Res
+import whitenoise.composeapp.generated.resources.app_name
+import whitenoise.composeapp.generated.resources.select_sound
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -21,7 +25,7 @@ fun TopToolbar(navController: NavController, modifier: Modifier = Modifier) {
         modifier = modifier,
         title = {
             Text(
-                text = "Dozze",
+                text = stringResource(Res.string.app_name),
                 color = Color.White,
                 fontSize = 36.sp,
                 fontWeight = FontWeight.Bold

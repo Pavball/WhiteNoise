@@ -20,12 +20,23 @@ import com.github.skydoves.colorpicker.compose.ColorEnvelope
 import com.github.skydoves.colorpicker.compose.ColorPickerController
 import com.github.skydoves.colorpicker.compose.HsvColorPicker
 import org.jetbrains.compose.resources.painterResource
+import org.jetbrains.compose.resources.stringResource
 import pavball.hr.whitenoise.domain.model.CustomSound
 import pavball.hr.whitenoise.ui.components.drawFadingEdges
 import pavball.hr.whitenoise.ui.screens.home.fromHex
 import pavball.hr.whitenoise.ui.screens.home.lighten
 import whitenoise.composeapp.generated.resources.Res
+import whitenoise.composeapp.generated.resources.are_you_sure
+import whitenoise.composeapp.generated.resources.cancel
+import whitenoise.composeapp.generated.resources.choose_color_bg
+import whitenoise.composeapp.generated.resources.delete
+import whitenoise.composeapp.generated.resources.edit_sound_name
 import whitenoise.composeapp.generated.resources.ic_delete
+import whitenoise.composeapp.generated.resources.manage_custom_sound
+import whitenoise.composeapp.generated.resources.no_custom_sounds
+import whitenoise.composeapp.generated.resources.save
+import whitenoise.composeapp.generated.resources.select_sound
+import whitenoise.composeapp.generated.resources.sound_name
 
 @Composable
 fun ManageCustomSoundsScreen(
@@ -47,23 +58,23 @@ fun ManageCustomSoundsScreen(
 
         // Initial color
         val initialColor = remember(sound.colorId) {
-            sound.colorId?.let { Color.fromHex(it) } ?: Color(0xFF3F51B5)
+            sound.colorId.let { Color.fromHex(it) }
         }
 
         // Local mutable color
         var pickedColor by remember { mutableStateOf(initialColor) }
-        var pickedColorHex by remember { mutableStateOf(sound.colorId ?: "3F51B5") }
+        var pickedColorHex by remember { mutableStateOf(sound.colorId) }
 
         AlertDialog(
             onDismissRequest = { editingSound = null },
-            title = { Text("Edit Sound Name") },
+            title = { Text(stringResource(Res.string.edit_sound_name)) },
             text = {
                 Column(Modifier.fillMaxWidth()) {
 
                     OutlinedTextField(
                         value = editingName,
                         onValueChange = { editingName = it },
-                        label = { Text("Sound name") },
+                        label = { Text(stringResource(Res.string.sound_name)) },
                         singleLine = true,
                         modifier = Modifier.fillMaxWidth()
                     )
@@ -73,7 +84,7 @@ fun ManageCustomSoundsScreen(
                     // Gradient preview
                     val gradient = listOf(pickedColor, pickedColor.lighten(0.35f))
 
-                    Text("Choose Color Background", style = MaterialTheme.typography.titleLarge)
+                    Text(stringResource(Res.string.choose_color_bg), style = MaterialTheme.typography.titleLarge)
 
                     Spacer(Modifier.height(24.dp))
 
@@ -110,10 +121,10 @@ fun ManageCustomSoundsScreen(
                         }
                         editingSound = null
                     }
-                ) { Text("Save") }
+                ) { Text(stringResource(Res.string.save)) }
             },
             dismissButton = {
-                TextButton(onClick = { editingSound = null }) { Text("Cancel") }
+                TextButton(onClick = { editingSound = null }) { Text(stringResource(Res.string.cancel)) }
             }
         )
     }
@@ -122,18 +133,18 @@ fun ManageCustomSoundsScreen(
     deletingSound?.let { sound ->
         AlertDialog(
             onDismissRequest = { deletingSound = null },
-            title = { Text("Delete Sound") },
-            text = { Text("Are you sure you want to delete \"${sound.displayName}\"?") },
+            title = { Text(stringResource(Res.string.delete)) },
+            text = { Text("${stringResource(Res.string.are_you_sure)} \"${sound.displayName}\"?") },
             confirmButton = {
                 TextButton(
                     onClick = {
                         onDelete(sound)
                         deletingSound = null
                     }
-                ) { Text("Delete", color = Color.Red) }
+                ) { Text(stringResource(Res.string.delete), color = Color.Red) }
             },
             dismissButton = {
-                TextButton(onClick = { deletingSound = null }) { Text("Cancel") }
+                TextButton(onClick = { deletingSound = null }) { Text(stringResource(Res.string.cancel)) }
             }
         )
     }
@@ -141,7 +152,7 @@ fun ManageCustomSoundsScreen(
     // -------------------- List UI --------------------
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
         Text(
-            "Manage Custom Sounds",
+            stringResource(Res.string.manage_custom_sound),
             style = MaterialTheme.typography.headlineSmall,
             fontWeight = FontWeight.Bold
         )
@@ -153,7 +164,7 @@ fun ManageCustomSoundsScreen(
                 Modifier.fillMaxSize(),
                 contentAlignment = Alignment.Center
             ) {
-                Text("No custom sounds added yet.")
+                Text(stringResource(Res.string.no_custom_sounds))
             }
         } else {
             LazyColumn(
@@ -189,7 +200,7 @@ fun ManageCustomSoundsScreen(
                                 }) {
                                     Icon(
                                         painter = painterResource(Res.drawable.ic_delete),
-                                        contentDescription = "Delete",
+                                        contentDescription = stringResource(Res.string.delete),
                                         tint = Color.Red
                                     )
                                 }

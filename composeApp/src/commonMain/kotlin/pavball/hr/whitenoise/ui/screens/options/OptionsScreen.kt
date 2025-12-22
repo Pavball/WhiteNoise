@@ -24,10 +24,17 @@ import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
+import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import pavball.hr.whitenoise.ui.components.drawFadingEdges
 import pavball.hr.whitenoise.ui.viewmodels.MainScreenViewModel
 import pavball.hr.whitenoise.ui.viewmodels.MainScreenViewState
+import whitenoise.composeapp.generated.resources.Res
+import whitenoise.composeapp.generated.resources.fade_out_time
+import whitenoise.composeapp.generated.resources.fade_time
+import whitenoise.composeapp.generated.resources.select_sound
+import whitenoise.composeapp.generated.resources.test
+import whitenoise.composeapp.generated.resources.theme
 
 @Composable
 fun OptionsScreen(
@@ -54,12 +61,12 @@ fun OptionsScreen(
 
         item {
 
-            Text("Theme", fontSize = 18.sp, modifier = Modifier.padding(start = 24.dp, 24.dp, end = 24.dp))
+            Text(stringResource(Res.string.theme), fontSize = 18.sp, modifier = Modifier.padding(start = 24.dp, 24.dp, end = 24.dp))
 
             Button(
                 modifier = Modifier.padding(24.dp),
                 onClick = { themeExpanded = !themeExpanded }) {
-                Text("Theme: ${state.themeMode.replaceFirstChar { it.uppercase() }}")
+                Text("${stringResource(Res.string.theme)}: ${state.themeMode.replaceFirstChar { it.uppercase() }}")
 
                 DropdownMenu(
                     expanded = themeExpanded,
@@ -80,12 +87,12 @@ fun OptionsScreen(
         }
 
         item {
-            Text("Fade Out Time", fontSize = 18.sp, modifier = Modifier.padding(start = 24.dp, 24.dp, end = 24.dp))
+            Text(stringResource(Res.string.fade_out_time), fontSize = 18.sp, modifier = Modifier.padding(start = 24.dp, 24.dp, end = 24.dp))
 
             Button(
                 modifier = Modifier.padding(24.dp),
                 onClick = { fadeOutExpanded = !fadeOutExpanded }) {
-                Text("Fade Time: ${state.fadeDuration}")
+                Text("${stringResource(Res.string.fade_time)}: ${state.fadeDuration}")
 
                 DropdownMenu(
                     expanded = fadeOutExpanded,
@@ -106,13 +113,13 @@ fun OptionsScreen(
         }
 
         item {
-            Text("This is text string for item in options 2", modifier = Modifier.padding(24.dp))
+            Text(stringResource(Res.string.test), modifier = Modifier.padding(24.dp))
 
             HorizontalDivider(thickness = 2.dp, color = Color.Black.copy(alpha = 0.4f))
         }
 
         item {
-            Text("This is text string for item in options 3", modifier = Modifier.padding(24.dp))
+            Text(stringResource(Res.string.test), modifier = Modifier.padding(24.dp))
 
             HorizontalDivider(thickness = 2.dp, color = Color.Black.copy(alpha = 0.4f))
         }

@@ -30,8 +30,16 @@ import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.github.skydoves.colorpicker.compose.ColorPickerController
 import com.github.skydoves.colorpicker.compose.HsvColorPicker
+import org.jetbrains.compose.resources.stringResource
 import pavball.hr.whitenoise.ui.screens.home.fromHex
 import pavball.hr.whitenoise.ui.screens.home.lighten
+import whitenoise.composeapp.generated.resources.Res
+import whitenoise.composeapp.generated.resources.cancel
+import whitenoise.composeapp.generated.resources.choose_color_bg
+import whitenoise.composeapp.generated.resources.edit_sound_name
+import whitenoise.composeapp.generated.resources.name
+import whitenoise.composeapp.generated.resources.save
+import whitenoise.composeapp.generated.resources.select_sound
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
@@ -67,14 +75,14 @@ fun AddCustomSoundDialog(
                 .padding(20.dp)
         ) {
 
-            Text("Edit Sound Name", style = MaterialTheme.typography.titleLarge)
+            Text(stringResource(Res.string.edit_sound_name), style = MaterialTheme.typography.titleLarge)
 
             Spacer(Modifier.height(16.dp))
 
             OutlinedTextField(
                 value = text,
                 onValueChange = { text = it },
-                label = { Text("Name") },
+                label = { Text(stringResource(Res.string.name)) },
                 modifier = Modifier.fillMaxWidth()
             )
 
@@ -84,7 +92,7 @@ fun AddCustomSoundDialog(
             val gradientColors = listOf(pickedColor, pickedColor.lighten(0.35f))
 
 
-            Text("Choose Color Background", style = MaterialTheme.typography.titleLarge)
+            Text(stringResource(Res.string.choose_color_bg), style = MaterialTheme.typography.titleLarge)
 
             Spacer(Modifier.height(24.dp))
 
@@ -115,7 +123,7 @@ fun AddCustomSoundDialog(
                 Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.End
             ) {
-                TextButton(onClick = onDismiss) { Text("Cancel") }
+                TextButton(onClick = onDismiss) { Text(stringResource(Res.string.cancel)) }
 
                 Spacer(Modifier.width(6.dp))
 
@@ -124,12 +132,12 @@ fun AddCustomSoundDialog(
                         val trimmed = text.trim()
                         if (trimmed.isNotEmpty()) {
                             onRename(trimmed)
-                            onColorChange(pickedColorHex) // ✔ APPLY TO DB NOW
+                            onColorChange(pickedColorHex)
                         }
                         onDismiss()
                     }
                 ) {
-                    Text("Save")
+                    Text(stringResource(Res.string.save))
                 }
             }
         }

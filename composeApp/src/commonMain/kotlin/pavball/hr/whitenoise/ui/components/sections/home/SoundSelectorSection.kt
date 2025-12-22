@@ -16,9 +16,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
+import org.jetbrains.compose.resources.stringResource
 import pavball.hr.whitenoise.ui.components.SpacerHelper
 import pavball.hr.whitenoise.ui.viewmodels.MainScreenViewModel
 import pavball.hr.whitenoise.ui.viewmodels.MainScreenViewState
+import whitenoise.composeapp.generated.resources.Res
+import whitenoise.composeapp.generated.resources.add_custom_sound
+import whitenoise.composeapp.generated.resources.select_sound
 
 @Composable
 internal fun SoundSelectorSection(
@@ -79,7 +83,7 @@ internal fun SoundSelectorSection(
                 containerColor = Color.Blue.copy(alpha = 0.7f),
                 contentColor = Color.White
             )
-        ) { Text("Add Custom Sound") }
+        ) { Text(stringResource(Res.string.add_custom_sound)) }
 
         SpacerHelper(28.dp)
     }

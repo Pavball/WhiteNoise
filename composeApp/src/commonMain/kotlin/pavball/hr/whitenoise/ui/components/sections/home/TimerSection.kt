@@ -15,9 +15,14 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import org.jetbrains.compose.resources.stringResource
 import pavball.hr.whitenoise.ui.components.SpacerHelper
 import pavball.hr.whitenoise.ui.viewmodels.MainScreenViewModel
 import pavball.hr.whitenoise.ui.viewmodels.MainScreenViewState
+import whitenoise.composeapp.generated.resources.Res
+import whitenoise.composeapp.generated.resources.min
+import whitenoise.composeapp.generated.resources.select_sound
+import whitenoise.composeapp.generated.resources.sleep_timer
 
 @Composable
 internal fun TimerSection(
@@ -25,7 +30,7 @@ internal fun TimerSection(
     viewModel: MainScreenViewModel
 ) {
 
-    Text("Sleep Timer", style = MaterialTheme.typography.titleMedium)
+    Text(stringResource(Res.string.sleep_timer), style = MaterialTheme.typography.titleMedium)
     SpacerHelper(8.dp)
 
     LazyVerticalGrid(
@@ -47,7 +52,7 @@ internal fun TimerSection(
                     contentColor = Color.White
                 )
             ) {
-                Text("$minutes min")
+                Text("$minutes ${stringResource(Res.string.min)}")
             }
         }
     }

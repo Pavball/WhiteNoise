@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<resources>
+    <string name="hello_world">Pozdrav svijete</string>
+    <string name="app_name">Dozzze</string>
+
+    <!--SOUND-->
+    <string name="add_custom_sound">Add Custom Sound</string>
+    <string name="edit_sound_name">Edit Sound Name</string>
+    <string name="manage_custom_sound">Manage Custom Sounds</string>
+    <string name="select_sound">Select Sound</string>
+    <string name="delete_sound">Delete Sound</string>
+    <string name="sound_name">Sound name</string>
+
+    <!--TEXT-->
+    <string name="name">Name</string>
+    <string name="theme">Theme</string>
+    <string name="fade_out_time">Fade Out Time</string>
+    <string name="fade_time">Fade Time</string>
+    <string name="choose_color_bg">Choose Color Background</string>
+    <string name="sleep_timer">Sleep Timer</string>
+    <string name="no_custom_sounds">No custom sounds added yet.</string>
+    <string name="test">This is text string</string>
+
+
+    <!--BUTTON-->
+    <string name="cancel">Cancel</string>
+    <string name="save">Save</string>
+    <string name="delete">Delete</string>
+
+    <!--SUFFIX-->
+    <string name="sec">sec</string>
+    <string name="min">min</string>
+
+    <!--PREFIX-->
+    <string name="fade_out_last">Fade out last</string>
+    <string name="stopping_in">Stopping in</string>
+    <string name="are_you_sure">Are you sure you want to delete</string>
+
+</resources>

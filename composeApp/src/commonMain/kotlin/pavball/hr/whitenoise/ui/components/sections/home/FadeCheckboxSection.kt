@@ -7,8 +7,13 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
+import org.jetbrains.compose.resources.stringResource
 import pavball.hr.whitenoise.ui.viewmodels.MainScreenViewModel
 import pavball.hr.whitenoise.ui.viewmodels.MainScreenViewState
+import whitenoise.composeapp.generated.resources.Res
+import whitenoise.composeapp.generated.resources.fade_out_last
+import whitenoise.composeapp.generated.resources.sec
+import whitenoise.composeapp.generated.resources.select_sound
 
 @Composable
 internal fun FadeCheckboxSection(
@@ -21,7 +26,7 @@ internal fun FadeCheckboxSection(
             colors = CheckboxDefaults.colors().copy(checkedBoxColor = Color.Blue.copy(alpha = 0.7f), checkedCheckmarkColor = Color.White),
             onCheckedChange = { viewModel.updateFadeEnabled(it) }
         )
-        Text("Fade out last ${state.fadeDuration} sec")
+        Text("${stringResource(Res.string.fade_out_last)} ${state.fadeDuration} ${stringResource(Res.string.sec)}")
 
     }
 }

@@ -10,14 +10,10 @@ import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
-import org.jetbrains.compose.resources.painterResource
 import pavball.hr.whitenoise.ui.screens.main.Screens
-import whitenoise.composeapp.generated.resources.Res
-import whitenoise.composeapp.generated.resources.ic_pause
 
 @Composable
 fun BottomNavigationBar(modifier: Modifier = Modifier, navController: NavController) {
