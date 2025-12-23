@@ -22,6 +22,7 @@ import pavball.hr.whitenoise.ui.components.SettingsDataStore
 import pavball.hr.whitenoise.ui.components.UserSettings
 import pavball.hr.whitenoise.ui.viewmodels.MainScreenViewModel
 import pavball.hr.whitenoise.ui.viewmodels.MainScreenViewState
+import java.util.Locale
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.milliseconds
 import kotlin.time.Duration.Companion.seconds
@@ -38,10 +39,6 @@ internal class MainScreenViewModelImpl(
     private val updateCustomSoundColorUseCase: UpdateCustomSoundColorUseCase
 ) : MainScreenViewModel() {
 
-    private val _customSounds = MutableStateFlow<List<CustomSound>>(emptyList())
-    override val userSounds: StateFlow<List<CustomSound>> =
-        _customSounds.asStateFlow()
-
     private val _pendingRename = MutableStateFlow<CustomSound?>(null)
     override val pendingRename: StateFlow<CustomSound?> =
         _pendingRename.asStateFlow()
@@ -49,7 +46,7 @@ internal class MainScreenViewModelImpl(
     override val currentSoundColorId: String?
         get() {
             val id = getCurrentState().currentSound ?: return null
-            return _customSounds.value.firstOrNull { it.id == id }?.colorId
+            return getCurrentState().customSounds.firstOrNull { it.id == id }?.colorId
         }
 
     private var exoPlayer: ExoPlayer? = null
@@ -89,7 +86,11 @@ internal class MainScreenViewModelImpl(
         // collect custom sounds from SQLDelight via usecase
         runCommand {
             getCustomSoundUseCase().collectLatest { list ->
-                _customSounds.value = list
+                updateState {
+                    copy(
+                        customSounds = list
+                    )
+                }
             }
         }
     }
@@ -174,6 +175,7 @@ internal class MainScreenViewModelImpl(
                         val mediaItem = MediaItem.fromUri(uri)
                         it.setMediaItem(mediaItem)
                         it.prepare()
+                        it.repeatMode = 1
                         it.play()
                     }
                     exoPlayer = player
@@ -181,6 +183,7 @@ internal class MainScreenViewModelImpl(
                 }
             }
             updateState { copy(isPlaying = true, isLoading = false) }
+
             runCommand {
                 settings.saveSettings(getCurrentState().toUserSettings())
             }
@@ -189,9 +192,12 @@ internal class MainScreenViewModelImpl(
 
     override fun pauseSound() {
         runCommand {
-            runOnMain { exoPlayer?.pause() }; updateState {
-            copy(isPlaying = false)
-        }
+            runOnMain {
+                exoPlayer?.pause()
+            }
+            updateState {
+                copy(isPlaying = false)
+            }
         }
     }
 
@@ -356,7 +362,7 @@ internal class MainScreenViewModelImpl(
 
     override fun saveThemeModeToUserPrefs(themeMode: String) {
         runCommand {
-            updateState { copy(themeMode = themeMode) }
+            updateState { copy(themeMode = themeMode.uppercase(Locale.getDefault())) }
             persistCurrentSettings()
         }
     }

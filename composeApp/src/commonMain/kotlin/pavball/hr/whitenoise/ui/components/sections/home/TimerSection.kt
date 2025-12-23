@@ -21,7 +21,6 @@ import pavball.hr.whitenoise.ui.viewmodels.MainScreenViewModel
 import pavball.hr.whitenoise.ui.viewmodels.MainScreenViewState
 import whitenoise.composeapp.generated.resources.Res
 import whitenoise.composeapp.generated.resources.min
-import whitenoise.composeapp.generated.resources.select_sound
 import whitenoise.composeapp.generated.resources.sleep_timer
 
 @Composable
@@ -46,9 +45,8 @@ internal fun TimerSection(
                 onClick = { viewModel.updateSelectedTimer(minutes) },
                 colors = ButtonDefaults.buttonColors(
                     containerColor =
-                        if (state.timerSelectedMinutes == minutes)
-                            Color.Blue.copy(alpha = 0.7f)
-                        else Color.Gray.copy(alpha = 0.4f),
+                        if (state.timerSelectedMinutes != minutes)
+                             Color.Gray.copy(alpha = 0.4f) else Color.Unspecified,
                     contentColor = Color.White
                 )
             ) {

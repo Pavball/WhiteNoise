@@ -1,17 +1,22 @@
 package pavball.hr.whitenoise.ui.components
 
 import android.content.Context
-import androidx.datastore.preferences.core.*
+import androidx.datastore.preferences.core.booleanPreferencesKey
+import androidx.datastore.preferences.core.edit
+import androidx.datastore.preferences.core.intPreferencesKey
+import androidx.datastore.preferences.core.stringPreferencesKey
 import androidx.datastore.preferences.preferencesDataStore
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
+import pavball.hr.whitenoise.ui.viewmodels.MainScreenViewState.Companion.ThemeMode
+
 private val Context.dataStore by preferencesDataStore("user_settings")
 data class UserSettings(
     val lastSound: String? = null,
     val timerMinutes: Int = 0,
     val fadeEnabled: Boolean = true,
     val fadeDuration: Int = 30,
-    val themeMode: String = "system"
+    val themeMode: String = ThemeMode.SYSTEM.name
 )
 class SettingsDataStore(private val context: Context) {
     companion object {
@@ -27,7 +32,7 @@ class SettingsDataStore(private val context: Context) {
             timerMinutes = prefs[TIMER_MINUTES_KEY] ?: 0,
             fadeEnabled = prefs[FADE_ENABLED_KEY] ?: true,
             fadeDuration = prefs[FADE_DURATION_KEY] ?: 30,
-            themeMode = prefs[THEME_MODE_KEY] ?: "system"
+            themeMode = prefs[THEME_MODE_KEY] ?: ThemeMode.SYSTEM.name
         )
     }
     suspend fun saveSettings(settings: UserSettings) {

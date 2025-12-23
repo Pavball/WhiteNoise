@@ -3,8 +3,10 @@ package pavball.hr.whitenoise.ui.components
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.BottomAppBar
 import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
+import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -17,7 +19,7 @@ import pavball.hr.whitenoise.ui.screens.main.Screens
 
 @Composable
 fun BottomNavigationBar(modifier: Modifier = Modifier, navController: NavController) {
-    val items = listOf(Screens.Home,Screens.ManageCustomSounds, Screens.Options)
+    val items = listOf(Screens.Home, Screens.ManageCustomSounds, Screens.Options)
 
     BottomAppBar(
         contentColor = Color.White,
@@ -34,7 +36,16 @@ fun BottomNavigationBar(modifier: Modifier = Modifier, navController: NavControl
                             modifier = modifier.size(24.dp)
                         )
                     },
-                    label = { Text(tab.title) },
+                    label = {
+                        Text(
+                            tab.title,
+                            color = if (currentRoute == tab.route) MaterialTheme.colorScheme.tertiary else Color.Unspecified
+                        )
+                    },
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = MaterialTheme.colorScheme.primaryContainer,
+                        indicatorColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f)
+                    ),
                     selected = currentRoute == tab.route,
                     onClick = {
                         if (currentRoute != tab.route) {

@@ -2,13 +2,32 @@ package pavball.hr.whitenoise.ui.screens.manage
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -35,7 +54,6 @@ import whitenoise.composeapp.generated.resources.ic_delete
 import whitenoise.composeapp.generated.resources.manage_custom_sound
 import whitenoise.composeapp.generated.resources.no_custom_sounds
 import whitenoise.composeapp.generated.resources.save
-import whitenoise.composeapp.generated.resources.select_sound
 import whitenoise.composeapp.generated.resources.sound_name
 
 @Composable
@@ -84,7 +102,10 @@ fun ManageCustomSoundsScreen(
                     // Gradient preview
                     val gradient = listOf(pickedColor, pickedColor.lighten(0.35f))
 
-                    Text(stringResource(Res.string.choose_color_bg), style = MaterialTheme.typography.titleLarge)
+                    Text(
+                        stringResource(Res.string.choose_color_bg),
+                        style = MaterialTheme.typography.titleLarge
+                    )
 
                     Spacer(Modifier.height(24.dp))
 
@@ -104,6 +125,7 @@ fun ManageCustomSoundsScreen(
                             .fillMaxWidth()
                             .height(300.dp),
                         controller = controller,
+                        initialColor = initialColor,
                         onColorChanged = { envelope: ColorEnvelope ->
                             pickedColorHex = envelope.hexCode
                             pickedColor = Color.fromHex(envelope.hexCode)
@@ -124,7 +146,9 @@ fun ManageCustomSoundsScreen(
                 ) { Text(stringResource(Res.string.save)) }
             },
             dismissButton = {
-                TextButton(onClick = { editingSound = null }) { Text(stringResource(Res.string.cancel)) }
+                TextButton(onClick = {
+                    editingSound = null
+                }) { Text(stringResource(Res.string.cancel)) }
             }
         )
     }
@@ -144,7 +168,9 @@ fun ManageCustomSoundsScreen(
                 ) { Text(stringResource(Res.string.delete), color = Color.Red) }
             },
             dismissButton = {
-                TextButton(onClick = { deletingSound = null }) { Text(stringResource(Res.string.cancel)) }
+                TextButton(onClick = {
+                    deletingSound = null
+                }) { Text(stringResource(Res.string.cancel)) }
             }
         )
     }
@@ -153,8 +179,7 @@ fun ManageCustomSoundsScreen(
     Column(modifier = Modifier.fillMaxSize().padding(16.dp)) {
         Text(
             stringResource(Res.string.manage_custom_sound),
-            style = MaterialTheme.typography.headlineSmall,
-            fontWeight = FontWeight.Bold
+            style = MaterialTheme.typography.headlineLarge
         )
 
         Spacer(Modifier.height(16.dp))

@@ -9,6 +9,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.DropdownMenu
 import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -19,8 +20,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.unit.FontScaling
-import androidx.compose.ui.unit.TextUnit
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
@@ -32,7 +31,6 @@ import pavball.hr.whitenoise.ui.viewmodels.MainScreenViewState
 import whitenoise.composeapp.generated.resources.Res
 import whitenoise.composeapp.generated.resources.fade_out_time
 import whitenoise.composeapp.generated.resources.fade_time
-import whitenoise.composeapp.generated.resources.select_sound
 import whitenoise.composeapp.generated.resources.test
 import whitenoise.composeapp.generated.resources.theme
 
@@ -61,19 +59,26 @@ fun OptionsScreen(
 
         item {
 
-            Text(stringResource(Res.string.theme), fontSize = 18.sp, modifier = Modifier.padding(start = 24.dp, 24.dp, end = 24.dp))
+            Text(
+                stringResource(Res.string.theme),
+                fontSize = 18.sp,
+                modifier = Modifier.padding(start = 24.dp, 24.dp, end = 24.dp)
+            )
 
             Button(
                 modifier = Modifier.padding(24.dp),
                 onClick = { themeExpanded = !themeExpanded }) {
-                Text("${stringResource(Res.string.theme)}: ${state.themeMode.replaceFirstChar { it.uppercase() }}")
+                Text(
+                    "${stringResource(Res.string.theme)}: ${state.themeMode}",
+                    color = Color.White
+                )
 
                 DropdownMenu(
                     expanded = themeExpanded,
                     onDismissRequest = { themeExpanded = false }) {
-                    listOf("system", "light", "dark").forEach { mode ->
+                    state.themeOptions.forEach { mode ->
                         DropdownMenuItem(
-                            text = { Text(mode.replaceFirstChar { it.uppercase() }) },
+                            text = { Text(mode) },
                             onClick = {
                                 themeExpanded = false
                                 viewModel.saveThemeModeToUserPrefs(mode)
@@ -83,16 +88,23 @@ fun OptionsScreen(
                 }
             }
 
-            HorizontalDivider(thickness = 2.dp, color = Color.Black.copy(alpha = 0.4f))
+            HorizontalDivider(thickness = 2.dp, color = MaterialTheme.colorScheme.primaryContainer)
         }
 
         item {
-            Text(stringResource(Res.string.fade_out_time), fontSize = 18.sp, modifier = Modifier.padding(start = 24.dp, 24.dp, end = 24.dp))
+            Text(
+                stringResource(Res.string.fade_out_time),
+                fontSize = 18.sp,
+                modifier = Modifier.padding(start = 24.dp, 24.dp, end = 24.dp)
+            )
 
             Button(
                 modifier = Modifier.padding(24.dp),
                 onClick = { fadeOutExpanded = !fadeOutExpanded }) {
-                Text("${stringResource(Res.string.fade_time)}: ${state.fadeDuration}")
+                Text(
+                    "${stringResource(Res.string.fade_time)}: ${state.fadeDuration}",
+                    color = Color.White
+                )
 
                 DropdownMenu(
                     expanded = fadeOutExpanded,
@@ -109,19 +121,19 @@ fun OptionsScreen(
                 }
             }
 
-            HorizontalDivider(thickness = 2.dp, color = Color.Black.copy(alpha = 0.4f))
+            HorizontalDivider(thickness = 2.dp, color = MaterialTheme.colorScheme.primaryContainer)
         }
 
         item {
             Text(stringResource(Res.string.test), modifier = Modifier.padding(24.dp))
 
-            HorizontalDivider(thickness = 2.dp, color = Color.Black.copy(alpha = 0.4f))
+            HorizontalDivider(thickness = 2.dp, color = MaterialTheme.colorScheme.primaryContainer)
         }
 
         item {
             Text(stringResource(Res.string.test), modifier = Modifier.padding(24.dp))
 
-            HorizontalDivider(thickness = 2.dp, color = Color.Black.copy(alpha = 0.4f))
+            HorizontalDivider(thickness = 2.dp, color = MaterialTheme.colorScheme.primaryContainer)
         }
     }
 }

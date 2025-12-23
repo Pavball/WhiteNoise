@@ -13,7 +13,6 @@ import pavball.hr.whitenoise.ui.viewmodels.MainScreenViewState
 import whitenoise.composeapp.generated.resources.Res
 import whitenoise.composeapp.generated.resources.fade_out_last
 import whitenoise.composeapp.generated.resources.sec
-import whitenoise.composeapp.generated.resources.select_sound
 
 @Composable
 internal fun FadeCheckboxSection(
@@ -23,7 +22,7 @@ internal fun FadeCheckboxSection(
     Row(verticalAlignment = Alignment.CenterVertically) {
         Checkbox(
             checked = state.fadeEnabled,
-            colors = CheckboxDefaults.colors().copy(checkedBoxColor = Color.Blue.copy(alpha = 0.7f), checkedCheckmarkColor = Color.White),
+            colors = CheckboxDefaults.colors().copy(checkedCheckmarkColor = Color.White),
             onCheckedChange = { viewModel.updateFadeEnabled(it) }
         )
         Text("${stringResource(Res.string.fade_out_last)} ${state.fadeDuration} ${stringResource(Res.string.sec)}")

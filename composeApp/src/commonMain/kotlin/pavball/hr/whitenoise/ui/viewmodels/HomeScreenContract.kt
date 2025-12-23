@@ -4,11 +4,12 @@ import kotlinx.coroutines.flow.StateFlow
 import pavball.hr.whitenoise.domain.model.CustomSound
 
 
-internal data class MainScreenViewState(
+data class MainScreenViewState(
     val sounds: List<Pair<String, String>> = defaultSounds,
-    val customSounds: List<CustomSound> = emptyList(),
+    val customSounds: List<CustomSound> = defaultCustomSounds,
     val timerOptions: List<Int> = defaultTimerOptions,
     val fadeOptions: List<Int> = defaultFadeOutOptions,
+    val themeOptions: List<String> = defaultThemeOptions,
     val selectedSoundKey: String = "rain",
 
     val isPlaying: Boolean = false,
@@ -26,7 +27,7 @@ internal data class MainScreenViewState(
     val fadeEnabled: Boolean = true,
     val fadeDuration: Int = 30,  // seconds
     val timerSelectedMinutes: Int = 0,
-    val themeMode: String = "system" // "light", "dark", "system"
+    val themeMode: String = ThemeMode.SYSTEM.name // "light", "dark", "system"
 ) {
     companion object {
         val defaultSounds = listOf(
@@ -36,14 +37,22 @@ internal data class MainScreenViewState(
             "Thunder Rain" to "thunder"
         )
 
+        val defaultCustomSounds = emptyList<CustomSound>()
+
         val defaultTimerOptions = listOf(5, 10, 15, 20, 25, 30)
 
         val defaultFadeOutOptions = listOf(5, 10, 15, 20, 25, 30)
+
+        val defaultThemeOptions = listOf("SYSTEM", "LIGHT", "DARK")
+
+        enum class ThemeMode {
+            DARK, LIGHT, SYSTEM
+        }
+
     }
 }
 
 internal abstract class MainScreenViewModel : BaseViewModel<MainScreenViewState>(MainScreenViewState()) {
-    abstract val userSounds: StateFlow<List<CustomSound>>
     abstract val pendingRename: StateFlow<CustomSound?> // used by UI to open rename dialog immediately
 
     abstract fun playSound(soundId: String)

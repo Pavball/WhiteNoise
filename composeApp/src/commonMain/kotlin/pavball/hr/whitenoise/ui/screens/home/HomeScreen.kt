@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.rememberLazyListState
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -46,7 +45,7 @@ internal fun HomeScreen(
         .collectAsState(initial = MainScreenViewState())
 
     var expanded by rememberSaveable { mutableStateOf(false) }
-    val customSounds by viewModel.userSounds.collectAsState()
+    val customSounds = state.customSounds
 
     val scrollableState = rememberLazyListState()
 
