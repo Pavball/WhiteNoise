@@ -23,7 +23,7 @@ import org.jetbrains.compose.resources.stringResource
 import pavball.hr.whitenoise.domain.model.rememberSoundPicker
 import pavball.hr.whitenoise.ui.components.SpacerHelper
 import pavball.hr.whitenoise.ui.components.dialog.AddCustomSoundDialog
-import pavball.hr.whitenoise.ui.components.drawFadingEdges
+import pavball.hr.whitenoise.ui.components.drawVerticalFadingEdges
 import pavball.hr.whitenoise.ui.components.formatTime
 import pavball.hr.whitenoise.ui.components.sections.home.ControlsSection
 import pavball.hr.whitenoise.ui.components.sections.home.FadeCheckboxSection
@@ -54,7 +54,8 @@ internal fun HomeScreen(
     }
 
     val selectedSoundLabel =
-        combinedSounds.firstOrNull { it.second == state.currentSound }?.first ?: stringResource(Res.string.select_sound)
+        combinedSounds.firstOrNull { it.second == state.currentSound }?.first
+            ?: stringResource(Res.string.select_sound)
     val pendingRename by viewModel.pendingRename.collectAsState()
 
     val launchSoundPicker = rememberSoundPicker { picked ->
@@ -73,7 +74,7 @@ internal fun HomeScreen(
     LazyColumn(
         modifier = modifier
             .fillMaxSize()
-            .drawFadingEdges(scrollableState),
+            .drawVerticalFadingEdges(scrollableState),
         state = scrollableState,
         verticalArrangement = Arrangement.Top,
         horizontalAlignment = Alignment.CenterHorizontally
@@ -126,7 +127,7 @@ internal fun HomeScreen(
         item { SpacerHelper(8.dp) }
 
         item {
-            TimerSection(state = state, viewModel = viewModel)
+            TimerSection(state = state, onMinutesSelected = { viewModel.updateSelectedTimer(it) })
         }
 
         item { SpacerHelper(12.dp) }

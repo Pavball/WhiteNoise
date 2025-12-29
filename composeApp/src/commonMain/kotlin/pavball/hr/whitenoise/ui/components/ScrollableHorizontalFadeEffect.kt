@@ -16,7 +16,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
-fun Modifier.drawFadingEdges(
+fun Modifier.drawHorizontalFadingEdges(
     scrollableState: ScrollableState,
     topEdgeHeight: Dp = 72.dp,
     bottomEdgeHeight: Dp = 72.dp,
@@ -45,13 +45,13 @@ fun Modifier.drawFadingEdges(
 
             if (topAlpha > 0f) {
                 drawRect(
-                    brush = Brush.verticalGradient(
+                    brush = Brush.horizontalGradient(
                         colors = listOf(
                             Color.Black.copy(alpha = topAlpha),
                             Color.Transparent
                         ),
-                        startY = 0f,
-                        endY = topEdgeHeightPx,
+                        startX = 0f,
+                        endX = topEdgeHeightPx,
                     ),
                     blendMode = BlendMode.DstOut,
                 )
@@ -59,13 +59,13 @@ fun Modifier.drawFadingEdges(
 
             if (bottomAlpha > 0f) {
                 drawRect(
-                    brush = Brush.verticalGradient(
+                    brush = Brush.horizontalGradient(
                         colors = listOf(
                             Color.Transparent,
                             Color.Black.copy(alpha = bottomAlpha)
                         ),
-                        startY = size.height - bottomEdgeHeightPx,
-                        endY = size.height,
+                        startX = size.width - bottomEdgeHeightPx,
+                        endX = size.width,
                     ),
                     blendMode = BlendMode.DstOut,
                 )

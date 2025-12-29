@@ -25,7 +25,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
-import pavball.hr.whitenoise.ui.components.drawFadingEdges
+import pavball.hr.whitenoise.ui.components.drawVerticalFadingEdges
 import pavball.hr.whitenoise.ui.viewmodels.MainScreenViewModel
 import pavball.hr.whitenoise.ui.viewmodels.MainScreenViewState
 import whitenoise.composeapp.generated.resources.Res
@@ -53,7 +53,7 @@ fun OptionsScreen(
         horizontalAlignment = Alignment.Start,
         modifier = Modifier
             .fillMaxSize()
-            .drawFadingEdges(scrollableState),
+            .drawVerticalFadingEdges(scrollableState),
         state = scrollableState
     ) {
 

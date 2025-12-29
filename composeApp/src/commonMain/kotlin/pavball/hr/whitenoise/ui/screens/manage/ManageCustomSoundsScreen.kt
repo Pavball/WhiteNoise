@@ -41,7 +41,7 @@ import com.github.skydoves.colorpicker.compose.HsvColorPicker
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import pavball.hr.whitenoise.domain.model.CustomSound
-import pavball.hr.whitenoise.ui.components.drawFadingEdges
+import pavball.hr.whitenoise.ui.components.drawVerticalFadingEdges
 import pavball.hr.whitenoise.ui.screens.home.fromHex
 import pavball.hr.whitenoise.ui.screens.home.lighten
 import whitenoise.composeapp.generated.resources.Res
@@ -196,7 +196,7 @@ fun ManageCustomSoundsScreen(
                 verticalArrangement = Arrangement.spacedBy(12.dp),
                 modifier = Modifier
                     .fillMaxSize()
-                    .drawFadingEdges(scrollableState),
+                    .drawVerticalFadingEdges(scrollableState),
                 state = scrollableState
             ) {
                 items(customSounds) { sound ->
