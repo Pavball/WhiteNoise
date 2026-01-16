@@ -41,7 +41,7 @@ import com.github.skydoves.colorpicker.compose.HsvColorPicker
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import pavball.hr.whitenoise.domain.model.CustomSound
-import pavball.hr.whitenoise.ui.components.drawVerticalFadingEdges
+import pavball.hr.whitenoise.ui.components.effects.drawVerticalFadingEdges
 import pavball.hr.whitenoise.ui.screens.home.fromHex
 import pavball.hr.whitenoise.ui.screens.home.lighten
 import whitenoise.composeapp.generated.resources.Res

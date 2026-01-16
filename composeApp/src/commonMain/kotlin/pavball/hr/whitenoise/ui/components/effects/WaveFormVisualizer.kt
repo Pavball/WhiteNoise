@@ -1,4 +1,4 @@
-package pavball.hr.whitenoise.ui.components
+package pavball.hr.whitenoise.ui.components.effects
 
 import androidx.compose.animation.core.LinearEasing
 import androidx.compose.animation.core.RepeatMode

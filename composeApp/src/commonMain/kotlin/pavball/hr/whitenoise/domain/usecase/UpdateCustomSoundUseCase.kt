@@ -1,8 +1,6 @@
 package pavball.hr.whitenoise.domain.usecase
 
-import kotlinx.coroutines.flow.Flow
-import pavball.hr.whitenoise.domain.model.CustomSound
-import pavball.hr.whitenoise.repositorites.CustomSoundRepository
+import pavball.hr.whitenoise.repositories.CustomSoundRepository
 
 internal interface UpdateCustomSoundUseCase {
 

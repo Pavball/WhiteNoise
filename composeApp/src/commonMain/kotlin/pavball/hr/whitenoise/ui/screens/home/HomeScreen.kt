@@ -21,15 +21,15 @@ import androidx.compose.ui.unit.dp
 import com.github.skydoves.colorpicker.compose.rememberColorPickerController
 import org.jetbrains.compose.resources.stringResource
 import pavball.hr.whitenoise.domain.model.rememberSoundPicker
-import pavball.hr.whitenoise.ui.components.SpacerHelper
+import pavball.hr.whitenoise.ui.components.utils.SpacerHelper
 import pavball.hr.whitenoise.ui.components.dialog.AddCustomSoundDialog
-import pavball.hr.whitenoise.ui.components.drawVerticalFadingEdges
-import pavball.hr.whitenoise.ui.components.formatTime
-import pavball.hr.whitenoise.ui.components.sections.home.ControlsSection
-import pavball.hr.whitenoise.ui.components.sections.home.FadeCheckboxSection
-import pavball.hr.whitenoise.ui.components.sections.home.NowPlayingCardSection
-import pavball.hr.whitenoise.ui.components.sections.home.SoundSelectorSection
-import pavball.hr.whitenoise.ui.components.sections.home.TimerSection
+import pavball.hr.whitenoise.ui.components.effects.drawVerticalFadingEdges
+import pavball.hr.whitenoise.ui.components.utils.formatTime
+import pavball.hr.whitenoise.ui.components.sections.white_noise.ControlsSection
+import pavball.hr.whitenoise.ui.components.sections.white_noise.FadeCheckboxSection
+import pavball.hr.whitenoise.ui.components.sections.white_noise.NowPlayingCardSection
+import pavball.hr.whitenoise.ui.components.sections.white_noise.SoundSelectorSection
+import pavball.hr.whitenoise.ui.components.sections.white_noise.TimerSection
 import pavball.hr.whitenoise.ui.viewmodels.MainScreenViewModel
 import pavball.hr.whitenoise.ui.viewmodels.MainScreenViewState
 import whitenoise.composeapp.generated.resources.Res
@@ -37,7 +37,7 @@ import whitenoise.composeapp.generated.resources.select_sound
 import whitenoise.composeapp.generated.resources.stopping_in
 
 @Composable
-internal fun HomeScreen(
+internal fun WhiteNoiseScreen(
     modifier: Modifier = Modifier,
     viewModel: MainScreenViewModel
 ) {
@@ -127,7 +127,7 @@ internal fun HomeScreen(
         item { SpacerHelper(8.dp) }
 
         item {
-            TimerSection(state = state, onMinutesSelected = { viewModel.updateSelectedTimer(it) })
+            TimerSection(state = state, viewModel = viewModel)
         }
 
         item { SpacerHelper(12.dp) }

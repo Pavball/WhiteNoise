@@ -9,10 +9,17 @@ import whitenoise.composeapp.generated.resources.ic_home
 import whitenoise.composeapp.generated.resources.ic_settings
 
 sealed class Screens(val route: String, val title: String, val icon: @Composable () -> Painter) {
+
     data object Home :
         Screens(
             route = "home",
             title = "Home",
+            icon = { painterResource(Res.drawable.ic_home) }
+        )
+    data object WhiteNoise :
+        Screens(
+            route = "white_noise",
+            title = "White Noise",
             icon = { painterResource(Res.drawable.ic_home) }
         )
 
@@ -29,4 +36,40 @@ sealed class Screens(val route: String, val title: String, val icon: @Composable
             title = "Options",
             icon = { painterResource(Res.drawable.ic_settings) }
         )
+
+    data object Dreams :
+        Screens(
+            route = "dreams",
+            title = "Dreams",
+            icon = { painterResource(Res.drawable.ic_settings) }
+        )
+
+    data object Meditations :
+        Screens(
+            route = "meditations",
+            title = "Meditations",
+            icon = { painterResource(Res.drawable.ic_settings) }
+        )
+
+    data object Tracking :
+        Screens(
+            route = "tracking",
+            title = "Tracking",
+            icon = { painterResource(Res.drawable.ic_settings) }
+        )
+
+    data object Sleep :
+        Screens(
+            route = "sleep",
+            title = "Sleep",
+            icon = { painterResource(Res.drawable.ic_settings) }
+        )
+
+    data object AddSound :
+        Screens(
+            route = "add_sound",
+            title = "Add Sound",
+            icon = { painterResource(Res.drawable.ic_settings) }
+        )
+
 }

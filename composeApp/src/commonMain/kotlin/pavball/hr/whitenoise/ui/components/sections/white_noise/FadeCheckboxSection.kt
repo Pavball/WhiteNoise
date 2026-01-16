@@ -1,4 +1,4 @@
-package pavball.hr.whitenoise.ui.components.sections.home
+package pavball.hr.whitenoise.ui.components.sections.white_noise
 
 import androidx.compose.foundation.layout.Row
 import androidx.compose.material3.Checkbox

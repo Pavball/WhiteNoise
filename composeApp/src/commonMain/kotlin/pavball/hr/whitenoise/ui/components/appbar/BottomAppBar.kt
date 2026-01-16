@@ -1,4 +1,4 @@
-package pavball.hr.whitenoise.ui.components
+package pavball.hr.whitenoise.ui.components.appbar
 
 import androidx.compose.foundation.layout.size
 import androidx.compose.material3.BottomAppBar

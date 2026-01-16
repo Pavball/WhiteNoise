@@ -1,4 +1,4 @@
-package pavball.hr.whitenoise.ui.components
+package pavball.hr.whitenoise.ui.components.effects
 
 import androidx.compose.animation.core.AnimationSpec
 import androidx.compose.animation.core.animateFloatAsState
@@ -16,7 +16,7 @@ import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 
-fun Modifier.drawHorizontalFadingEdges(
+fun Modifier.drawVerticalFadingEdges(
     scrollableState: ScrollableState,
     topEdgeHeight: Dp = 72.dp,
     bottomEdgeHeight: Dp = 72.dp,
@@ -45,13 +45,13 @@ fun Modifier.drawHorizontalFadingEdges(
 
             if (topAlpha > 0f) {
                 drawRect(
-                    brush = Brush.horizontalGradient(
+                    brush = Brush.verticalGradient(
                         colors = listOf(
                             Color.Black.copy(alpha = topAlpha),
                             Color.Transparent
                         ),
-                        startX = 0f,
-                        endX = topEdgeHeightPx,
+                        startY = 0f,
+                        endY = topEdgeHeightPx,
                     ),
                     blendMode = BlendMode.DstOut,
                 )
@@ -59,13 +59,13 @@ fun Modifier.drawHorizontalFadingEdges(
 
             if (bottomAlpha > 0f) {
                 drawRect(
-                    brush = Brush.horizontalGradient(
+                    brush = Brush.verticalGradient(
                         colors = listOf(
                             Color.Transparent,
                             Color.Black.copy(alpha = bottomAlpha)
                         ),
-                        startX = size.width - bottomEdgeHeightPx,
-                        endX = size.width,
+                        startY = size.height - bottomEdgeHeightPx,
+                        endY = size.height,
                     ),
                     blendMode = BlendMode.DstOut,
                 )

@@ -1,4 +1,4 @@
-package pavball.hr.whitenoise.repositorites
+package pavball.hr.whitenoise.repositories
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.map
 import pavball.hr.whitenoise.domain.model.CustomSound

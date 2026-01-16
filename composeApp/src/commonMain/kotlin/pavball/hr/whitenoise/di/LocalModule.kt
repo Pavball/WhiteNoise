@@ -11,10 +11,9 @@ import pavball.hr.whitenoise.domain.usecase.UpdateCustomSound
 import pavball.hr.whitenoise.domain.usecase.UpdateCustomSoundColor
 import pavball.hr.whitenoise.domain.usecase.UpdateCustomSoundColorUseCase
 import pavball.hr.whitenoise.domain.usecase.UpdateCustomSoundUseCase
-import pavball.hr.whitenoise.repositorites.CustomSoundRepository
-import pavball.hr.whitenoise.repositorites.CustomSoundRepositoryImpl
+import pavball.hr.whitenoise.repositories.CustomSoundRepository
+import pavball.hr.whitenoise.repositories.CustomSoundRepositoryImpl
 import pavball.hr.whitenoise.source.local.Database
-import pavball.hr.whitenoise.source.local.DriverFactory
 import pavball.hr.whitenoise.source.local.LocalDataSource
 import pavball.hr.whitenoise.source.local.LocalDataSourceImpl
 

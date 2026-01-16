@@ -20,6 +20,11 @@
     <string name="sleep_timer">Sleep Timer</string>
     <string name="no_custom_sounds">No custom sounds added yet.</string>
     <string name="test">This is text string</string>
+    <string name="meditations">Meditations</string>
+    <string name="dreams">Dreams</string>
+    <string name="white_noise">White Noise</string>
+    <string name="tracking">Tracking</string>
+    <string name="sleep">Sleep</string>
 
 
     <!--BUTTON-->

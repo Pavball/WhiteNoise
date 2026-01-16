@@ -1,4 +1,4 @@
-package pavball.hr.whitenoise.ui.components
+package pavball.hr.whitenoise.ui.components.utils
 
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height

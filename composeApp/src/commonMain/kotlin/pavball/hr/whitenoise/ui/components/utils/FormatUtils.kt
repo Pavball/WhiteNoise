@@ -1,4 +1,4 @@
-package pavball.hr.whitenoise.ui.components
+package pavball.hr.whitenoise.ui.components.utils
 
 fun formatTime(ms: Long): String {
     val totalSeconds = (ms / 1000)
