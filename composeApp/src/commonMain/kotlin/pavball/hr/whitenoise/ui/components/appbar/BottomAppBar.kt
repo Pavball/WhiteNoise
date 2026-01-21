@@ -22,11 +22,14 @@ fun BottomNavigationBar(modifier: Modifier = Modifier, navController: NavControl
     val items = listOf(Screens.Home, Screens.ManageCustomSounds, Screens.Options)
 
     BottomAppBar(
+        containerColor = MaterialTheme.colorScheme.primary,
         contentColor = Color.White,
         modifier = Modifier.shadow(elevation = 16.dp),
     ) {
         val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
-        NavigationBar {
+        NavigationBar(
+            containerColor = MaterialTheme.colorScheme.primary
+        ) {
             items.forEach { tab ->
                 NavigationBarItem(
                     icon = {
@@ -39,11 +42,12 @@ fun BottomNavigationBar(modifier: Modifier = Modifier, navController: NavControl
                     label = {
                         Text(
                             tab.title,
-                            color = if (currentRoute == tab.route) MaterialTheme.colorScheme.tertiary else Color.Unspecified
+                            color = if (currentRoute == tab.route) MaterialTheme.colorScheme.tertiary else Color.White
                         )
                     },
                     colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = MaterialTheme.colorScheme.primaryContainer,
+                        selectedIconColor = MaterialTheme.colorScheme.secondary,
+                        unselectedIconColor = MaterialTheme.colorScheme.secondary,
                         indicatorColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f)
                     ),
                     selected = currentRoute == tab.route,

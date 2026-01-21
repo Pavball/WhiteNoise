@@ -23,7 +23,7 @@ import pavball.hr.whitenoise.ui.viewmodels.MainScreenViewState
 fun MainScreen() {
     val navController = rememberNavController()
     Scaffold(
-        topBar = { TopToolbar(navController) },
+        topBar = { },
         bottomBar = { BottomNavigationBar(navController = navController) }
     ) { paddingValues ->
         val viewModel = koinViewModel<MainScreenViewModel>()
