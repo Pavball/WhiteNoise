@@ -1,4 +1,4 @@
-package pavball.hr.whitenoise.ui.screens.choose
+package pavball.hr.whitenoise.ui.screens.home
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -8,13 +8,13 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import org.jetbrains.compose.resources.painterResource
@@ -22,6 +22,7 @@ import org.jetbrains.compose.resources.stringResource
 import pavball.hr.whitenoise.ui.components.button.DozzzeButton
 import pavball.hr.whitenoise.ui.components.utils.SpacerHelper
 import pavball.hr.whitenoise.ui.screens.main.Screens
+import pavball.hr.whitenoise.ui.theme.getCustomQuicksandFontFamily
 import whitenoise.composeapp.generated.resources.Res
 import whitenoise.composeapp.generated.resources.bg_green
 import whitenoise.composeapp.generated.resources.dreams
@@ -37,6 +38,8 @@ internal fun HomeScreen(
     modifier: Modifier = Modifier,
     navController: NavController
 ) {
+
+    val quickSandFont = getCustomQuicksandFontFamily()
 
     Box(modifier = Modifier.fillMaxSize()) {
         Image(
@@ -71,6 +74,8 @@ internal fun HomeScreen(
                 buttonText = stringResource(Res.string.dreams),
                 buttonWidth = 226.dp,
                 buttonTextStyle = MaterialTheme.typography.bodyMedium,
+                buttonTextFont = quickSandFont,
+                buttonTextWeight = FontWeight.Bold,
                 shape = RoundedCornerShape(16.dp)
             )
 
@@ -81,6 +86,8 @@ internal fun HomeScreen(
                 buttonText = stringResource(Res.string.meditations),
                 buttonWidth = 226.dp,
                 buttonTextStyle = MaterialTheme.typography.bodyMedium,
+                buttonTextFont = quickSandFont,
+                buttonTextWeight = FontWeight.Bold,
                 shape = RoundedCornerShape(16.dp)
             )
 
@@ -91,6 +98,8 @@ internal fun HomeScreen(
                 buttonText = stringResource(Res.string.white_noise),
                 buttonWidth = 226.dp,
                 buttonTextStyle = MaterialTheme.typography.bodyMedium,
+                buttonTextFont = quickSandFont,
+                buttonTextWeight = FontWeight.Bold,
                 shape = RoundedCornerShape(16.dp)
             )
 
@@ -101,6 +110,8 @@ internal fun HomeScreen(
                 buttonText = stringResource(Res.string.tracking),
                 buttonWidth = 226.dp,
                 buttonTextStyle = MaterialTheme.typography.bodyMedium,
+                buttonTextFont = quickSandFont,
+                buttonTextWeight = FontWeight.Bold,
                 shape = RoundedCornerShape(16.dp)
             )
 
@@ -111,6 +122,8 @@ internal fun HomeScreen(
                 buttonText = stringResource(Res.string.sleep),
                 buttonWidth = 226.dp,
                 buttonTextStyle = MaterialTheme.typography.bodyMedium,
+                buttonTextFont = quickSandFont,
+                buttonTextWeight = FontWeight.Bold,
                 shape = RoundedCornerShape(16.dp)
             )
         }

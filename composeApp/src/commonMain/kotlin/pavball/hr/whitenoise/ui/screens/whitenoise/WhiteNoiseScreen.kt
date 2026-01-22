@@ -1,4 +1,4 @@
-package pavball.hr.whitenoise.ui.screens.home
+package pavball.hr.whitenoise.ui.screens.whitenoise
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column

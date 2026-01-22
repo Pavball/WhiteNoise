@@ -1,4 +1,4 @@
-package pavball.hr.whitenoise.ui.screens.manage
+package pavball.hr.whitenoise.ui.screens.sound.manage
 
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -42,8 +42,8 @@ import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import pavball.hr.whitenoise.domain.model.CustomSound
 import pavball.hr.whitenoise.ui.components.effects.drawVerticalFadingEdges
-import pavball.hr.whitenoise.ui.screens.home.fromHex
-import pavball.hr.whitenoise.ui.screens.home.lighten
+import pavball.hr.whitenoise.ui.screens.whitenoise.fromHex
+import pavball.hr.whitenoise.ui.screens.whitenoise.lighten
 import whitenoise.composeapp.generated.resources.Res
 import whitenoise.composeapp.generated.resources.are_you_sure
 import whitenoise.composeapp.generated.resources.cancel

@@ -1,4 +1,4 @@
-package pavball.hr.whitenoise.ui.screens.options
+package pavball.hr.whitenoise.ui.screens.settings
 
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.fillMaxSize
@@ -35,7 +35,7 @@ import whitenoise.composeapp.generated.resources.test
 import whitenoise.composeapp.generated.resources.theme
 
 @Composable
-fun OptionsScreen(
+fun SettingsScreen(
     modifier: Modifier = Modifier,
     navController: NavController
 ) {

@@ -11,11 +11,15 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import org.koin.compose.viewmodel.koinViewModel
 import pavball.hr.whitenoise.ui.components.appbar.BottomNavigationBar
-import pavball.hr.whitenoise.ui.components.appbar.TopToolbar
-import pavball.hr.whitenoise.ui.screens.choose.HomeScreen
-import pavball.hr.whitenoise.ui.screens.options.OptionsScreen
-import pavball.hr.whitenoise.ui.screens.home.WhiteNoiseScreen
-import pavball.hr.whitenoise.ui.screens.manage.ManageCustomSoundsScreen
+import pavball.hr.whitenoise.ui.screens.home.HomeScreen
+import pavball.hr.whitenoise.ui.screens.dream.DreamScreen
+import pavball.hr.whitenoise.ui.screens.meditation.MeditationScreen
+import pavball.hr.whitenoise.ui.screens.settings.SettingsScreen
+import pavball.hr.whitenoise.ui.screens.sleep.SleepScreen
+import pavball.hr.whitenoise.ui.screens.sound.add.AddSoundScreen
+import pavball.hr.whitenoise.ui.screens.sound.manage.ManageCustomSoundsScreen
+import pavball.hr.whitenoise.ui.screens.tracking.TrackingScreen
+import pavball.hr.whitenoise.ui.screens.whitenoise.WhiteNoiseScreen
 import pavball.hr.whitenoise.ui.viewmodels.MainScreenViewModel
 import pavball.hr.whitenoise.ui.viewmodels.MainScreenViewState
 
@@ -40,7 +44,7 @@ fun MainScreen() {
             }
 
             composable(Screens.Options.route) {
-                OptionsScreen(navController = navController)
+                SettingsScreen(navController = navController)
             }
 
             // WHITE NOISE PART
@@ -62,22 +66,24 @@ fun MainScreen() {
 
             // WHITE NOISE PART END
 
-
-
             composable(Screens.Dreams.route) {
-                OptionsScreen(navController = navController)
+                DreamScreen()
             }
 
             composable(Screens.Meditations.route) {
-                OptionsScreen(navController = navController)
+                MeditationScreen()
             }
 
             composable(Screens.Tracking.route) {
-                OptionsScreen(navController = navController)
+                TrackingScreen()
             }
 
             composable(Screens.Sleep.route) {
-                OptionsScreen(navController = navController)
+                SleepScreen()
+            }
+
+            composable(Screens.AddSound.route) {
+                AddSoundScreen()
             }
 
         }

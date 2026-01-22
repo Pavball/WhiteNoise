@@ -31,15 +31,14 @@ import androidx.compose.ui.window.DialogProperties
 import com.github.skydoves.colorpicker.compose.ColorPickerController
 import com.github.skydoves.colorpicker.compose.HsvColorPicker
 import org.jetbrains.compose.resources.stringResource
-import pavball.hr.whitenoise.ui.screens.home.fromHex
-import pavball.hr.whitenoise.ui.screens.home.lighten
+import pavball.hr.whitenoise.ui.screens.whitenoise.fromHex
+import pavball.hr.whitenoise.ui.screens.whitenoise.lighten
 import whitenoise.composeapp.generated.resources.Res
 import whitenoise.composeapp.generated.resources.cancel
 import whitenoise.composeapp.generated.resources.choose_color_bg
 import whitenoise.composeapp.generated.resources.edit_sound_name
 import whitenoise.composeapp.generated.resources.name
 import whitenoise.composeapp.generated.resources.save
-import whitenoise.composeapp.generated.resources.select_sound
 
 @OptIn(ExperimentalAnimationApi::class)
 @Composable
