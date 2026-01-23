@@ -112,6 +112,8 @@ kotlin {
             implementation(libs.sqldelight.coroutines)
 
             implementation(libs.compose.colorpicker)
+
+            implementation(libs.compose.material.icons)
         }
     }
 }

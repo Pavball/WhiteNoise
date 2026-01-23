@@ -55,6 +55,12 @@ val DozzzeTypography = Typography(
         color = DarkNavy
     ),
 
+    displaySmall = TextStyle(
+        fontFamily = FontFamily.Default,
+        fontWeight = FontWeight.Normal,
+        fontSize = 20.sp
+    ),
+
 
     )
 

@@ -2,6 +2,7 @@ package pavball.hr.whitenoise.ui.components.input
 
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
@@ -73,6 +74,7 @@ fun DreamJournalInput(
         // 5. Layout Modifier
         modifier = Modifier
             .fillMaxWidth()
-            .height(250.dp) // Set a fixed height for the large box
+            .padding(start = 100.dp, end = 100.dp)
+            .height(250.dp)
     )
 }

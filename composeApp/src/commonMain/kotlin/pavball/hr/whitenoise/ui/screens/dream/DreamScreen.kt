@@ -10,6 +10,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -20,6 +24,7 @@ import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import pavball.hr.whitenoise.ui.components.button.DozzzeButton
 import pavball.hr.whitenoise.ui.components.input.DreamJournalInput
+import pavball.hr.whitenoise.ui.components.input.RatingBar
 import pavball.hr.whitenoise.ui.components.utils.SpacerHelper
 import pavball.hr.whitenoise.ui.theme.getCustomBalooFontFamily
 import pavball.hr.whitenoise.ui.theme.getCustomQuicksandFontFamily
@@ -34,6 +39,8 @@ internal fun DreamScreen(
 
     val balooFont = getCustomBalooFontFamily()
     val quickSandFont = getCustomQuicksandFontFamily()
+
+    var rating by remember { mutableStateOf(0) }
 
     Box(modifier = Modifier.fillMaxSize()) {
         Image(
@@ -65,14 +72,23 @@ internal fun DreamScreen(
             SpacerHelper(92.dp)
 
             DreamJournalInput(quickSandFont)
+            
+            SpacerHelper(11.dp)
 
+            RatingBar(
+                currentRating = rating,
+                onRatingChanged = {
+                    newRating ->
+                    rating = newRating
+                }
+            )
             SpacerHelper(30.dp)
 
             DozzzeButton(
                 onClicked = {},
                 buttonText = stringResource(Res.string.save),
                 buttonWidth = 100.dp,
-                buttonTextStyle = MaterialTheme.typography.bodyMedium,
+                buttonTextStyle = MaterialTheme.typography.displaySmall,
                 buttonTextFont = quickSandFont,
                 buttonTextWeight = FontWeight.Normal,
                 shape = RoundedCornerShape(16.dp)

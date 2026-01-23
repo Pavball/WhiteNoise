@@ -38,6 +38,8 @@ sqldelight = "2.2.1"
 
 colorpicker = "1.1.3"
 
+material-icons = "1.7.3"
+
 [libraries]
 android-driver = { module = "app.cash.sqldelight:android-driver", version.ref = "androidDriver" }
 
@@ -54,6 +56,7 @@ navigation-compose = { module = "androidx.navigation:navigation-compose", versio
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activityCompose" }
 androidx-compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling", version.ref = "androidx-ui-tooling" }
 androidx-compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview", version.ref = "androidx-ui-tooling" }
+compose-material-icons = { module = "org.jetbrains.compose.material:material-icons-core", version.ref = "material-icons" }
 
 #ANDROID MEDIA 3
 androidx-media3-exoplayer = { module = "androidx.media3:media3-exoplayer", version.ref = "media3Exoplayer" }

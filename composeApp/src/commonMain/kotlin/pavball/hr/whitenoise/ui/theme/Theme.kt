@@ -21,7 +21,8 @@ private val LightColorScheme = lightColorScheme(
     onBackground = DarkNavy,
 
     surface = LightGray,
-    onSurface = DarkNavy
+    onSurface = DarkNavy,
+    onPrimaryFixed = LightGray
 )
 
 // 2. Define Dark Scheme
@@ -38,7 +39,8 @@ private val DarkColorScheme = darkColorScheme(
     onBackground = White,
 
     surface = DarkNavy,
-    onSurface = White
+    onSurface = White,
+    onPrimaryFixed = LightGray
 )
 
 @Composable

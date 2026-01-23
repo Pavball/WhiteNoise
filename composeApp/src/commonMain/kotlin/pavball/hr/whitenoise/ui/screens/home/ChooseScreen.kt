@@ -15,6 +15,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.intl.Locale
+import androidx.compose.ui.text.toUpperCase
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import org.jetbrains.compose.resources.painterResource
@@ -71,7 +73,7 @@ internal fun HomeScreen(
 
             DozzzeButton(
                 onClicked = { navController.navigate(Screens.Dreams.route) },
-                buttonText = stringResource(Res.string.dreams),
+                buttonText = stringResource(Res.string.dreams).toUpperCase(Locale.current),
                 buttonWidth = 226.dp,
                 buttonTextStyle = MaterialTheme.typography.bodyMedium,
                 buttonTextFont = quickSandFont,
@@ -83,7 +85,7 @@ internal fun HomeScreen(
 
             DozzzeButton(
                 onClicked = { navController.navigate(Screens.Meditations.route) },
-                buttonText = stringResource(Res.string.meditations),
+                buttonText = stringResource(Res.string.meditations).toUpperCase(Locale.current),
                 buttonWidth = 226.dp,
                 buttonTextStyle = MaterialTheme.typography.bodyMedium,
                 buttonTextFont = quickSandFont,
@@ -95,7 +97,7 @@ internal fun HomeScreen(
 
             DozzzeButton(
                 onClicked = { navController.navigate(Screens.WhiteNoise.route) },
-                buttonText = stringResource(Res.string.white_noise),
+                buttonText = stringResource(Res.string.white_noise).toUpperCase(Locale.current),
                 buttonWidth = 226.dp,
                 buttonTextStyle = MaterialTheme.typography.bodyMedium,
                 buttonTextFont = quickSandFont,
@@ -107,7 +109,7 @@ internal fun HomeScreen(
 
             DozzzeButton(
                 onClicked = { navController.navigate(Screens.Tracking.route) },
-                buttonText = stringResource(Res.string.tracking),
+                buttonText = stringResource(Res.string.tracking).toUpperCase(Locale.current),
                 buttonWidth = 226.dp,
                 buttonTextStyle = MaterialTheme.typography.bodyMedium,
                 buttonTextFont = quickSandFont,
@@ -119,7 +121,7 @@ internal fun HomeScreen(
 
             DozzzeButton(
                 onClicked = { navController.navigate(Screens.Sleep.route) },
-                buttonText = stringResource(Res.string.sleep),
+                buttonText = stringResource(Res.string.sleep).toUpperCase(Locale.current),
                 buttonWidth = 226.dp,
                 buttonTextStyle = MaterialTheme.typography.bodyMedium,
                 buttonTextFont = quickSandFont,
