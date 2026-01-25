@@ -16,19 +16,21 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.navigation.compose.currentBackStackEntryAsState
 import pavball.hr.whitenoise.ui.screens.main.Screens
+import pavball.hr.whitenoise.ui.theme.DarkNavy
+import pavball.hr.whitenoise.ui.theme.Mint
 
 @Composable
 fun BottomNavigationBar(modifier: Modifier = Modifier, navController: NavController) {
-    val items = listOf(Screens.Home, Screens.ManageCustomSounds, Screens.Options)
+    val items = listOf(Screens.Home, Screens.Notes, Screens.Profile)
 
     BottomAppBar(
-        containerColor = MaterialTheme.colorScheme.primary,
+        containerColor = DarkNavy,
         contentColor = Color.White,
         modifier = Modifier.shadow(elevation = 16.dp),
     ) {
         val currentRoute = navController.currentBackStackEntryAsState().value?.destination?.route
         NavigationBar(
-            containerColor = MaterialTheme.colorScheme.primary
+            containerColor = DarkNavy,
         ) {
             items.forEach { tab ->
                 NavigationBarItem(
@@ -36,19 +38,15 @@ fun BottomNavigationBar(modifier: Modifier = Modifier, navController: NavControl
                         Icon(
                             painter = tab.icon(),
                             contentDescription = null,
-                            modifier = modifier.size(24.dp)
+                            modifier = modifier.size(48.dp)
                         )
                     },
                     label = {
-                        Text(
-                            tab.title,
-                            color = if (currentRoute == tab.route) MaterialTheme.colorScheme.tertiary else Color.White
-                        )
                     },
                     colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = MaterialTheme.colorScheme.secondary,
+                        selectedIconColor = Mint,
                         unselectedIconColor = MaterialTheme.colorScheme.secondary,
-                        indicatorColor = MaterialTheme.colorScheme.primaryContainer.copy(alpha = 0.2f)
+                        indicatorColor = Color.Transparent
                     ),
                     selected = currentRoute == tab.route,
                     onClick = {

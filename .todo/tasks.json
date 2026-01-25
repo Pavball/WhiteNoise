@@ -81,7 +81,7 @@
     ],
     "title": "Color Picker",
     "description": "Add Color Picker to renaming dialog and ability to change it\nSave the color into database and use it to change color of Naming Card",
-    "status": "TODO",
+    "status": "DONE",
     "date": {
       "date": {
         "year": 2025,
@@ -93,6 +93,54 @@
         "minute": 26,
         "second": 39,
         "nano": 758266200
+      }
+    },
+    "isImported": false
+  },
+  {
+    "id": "TASK_24",
+    "priority": "LOW",
+    "tags": [
+      "Backend"
+    ],
+    "title": "Choose Fade Timer duration",
+    "description": "",
+    "status": "DONE",
+    "date": {
+      "date": {
+        "year": 2025,
+        "month": 12,
+        "day": 1
+      },
+      "time": {
+        "hour": 0,
+        "minute": 13,
+        "second": 53,
+        "nano": 244614100
+      }
+    },
+    "isImported": false
+  },
+  {
+    "id": "TASK_30",
+    "priority": "LOW",
+    "tags": [
+      "UI"
+    ],
+    "title": "New Design",
+    "description": "",
+    "status": "TODO",
+    "date": {
+      "date": {
+        "year": 2025,
+        "month": 12,
+        "day": 8
+      },
+      "time": {
+        "hour": 15,
+        "minute": 15,
+        "second": 5,
+        "nano": 810121400
       }
     },
     "isImported": false

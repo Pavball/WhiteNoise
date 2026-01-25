@@ -14,12 +14,18 @@ import pavball.hr.whitenoise.ui.components.appbar.BottomNavigationBar
 import pavball.hr.whitenoise.ui.screens.home.HomeScreen
 import pavball.hr.whitenoise.ui.screens.dream.DreamScreen
 import pavball.hr.whitenoise.ui.screens.meditation.MeditationScreen
+import pavball.hr.whitenoise.ui.screens.notes.NotesScreen
+import pavball.hr.whitenoise.ui.screens.profile.ManageProfileScreen
+import pavball.hr.whitenoise.ui.screens.profile.NotificationsScreen
+import pavball.hr.whitenoise.ui.screens.profile.ProfileScreen
+import pavball.hr.whitenoise.ui.screens.profile.SecurityScreen
 import pavball.hr.whitenoise.ui.screens.settings.SettingsScreen
 import pavball.hr.whitenoise.ui.screens.sleep.SleepScreen
 import pavball.hr.whitenoise.ui.screens.sound.add.AddSoundScreen
 import pavball.hr.whitenoise.ui.screens.sound.manage.ManageCustomSoundsScreen
 import pavball.hr.whitenoise.ui.screens.tracking.TrackingScreen
 import pavball.hr.whitenoise.ui.screens.whitenoise.WhiteNoiseScreen
+import pavball.hr.whitenoise.ui.screens.whitenoise.WhiteNoiseScreen2
 import pavball.hr.whitenoise.ui.viewmodels.MainScreenViewModel
 import pavball.hr.whitenoise.ui.viewmodels.MainScreenViewState
 
@@ -50,7 +56,7 @@ fun MainScreen() {
             // WHITE NOISE PART
 
             composable(Screens.WhiteNoise.route) {
-                WhiteNoiseScreen(viewModel = viewModel)
+                WhiteNoiseScreen2(navController = navController, viewModel = viewModel)
             }
 
             composable(Screens.ManageCustomSounds.route) {
@@ -62,6 +68,10 @@ fun MainScreen() {
                         viewModel.updateCustomSoundColor(id = cs.id, colorId = colorId)
                     },
                 )
+            }
+
+            composable(Screens.AddSound.route) {
+                AddSoundScreen(viewModel = viewModel)
             }
 
             // WHITE NOISE PART END
@@ -82,9 +92,26 @@ fun MainScreen() {
                 SleepScreen()
             }
 
-            composable(Screens.AddSound.route) {
-                AddSoundScreen()
+            composable(Screens.Notes.route) {
+                NotesScreen()
             }
+
+            composable(Screens.Profile.route) {
+                ProfileScreen(navController = navController)
+            }
+
+            composable(Screens.ManageProfile.route) {
+                ManageProfileScreen()
+            }
+
+            composable(Screens.Security.route) {
+                SecurityScreen()
+            }
+
+            composable(Screens.Notifications.route) {
+                NotificationsScreen()
+            }
+
 
         }
     }

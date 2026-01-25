@@ -37,6 +37,7 @@ import pavball.hr.whitenoise.ui.components.utils.SpacerHelper
 import pavball.hr.whitenoise.ui.theme.getCustomBalooFontFamily
 import pavball.hr.whitenoise.ui.theme.getCustomQuicksandFontFamily
 import whitenoise.composeapp.generated.resources.Res
+import whitenoise.composeapp.generated.resources.bg_canyon
 import whitenoise.composeapp.generated.resources.bg_sea
 
 @Composable
@@ -52,7 +53,7 @@ fun TrackingScreen(modifier: Modifier = Modifier) {
     Box(modifier = Modifier.fillMaxSize()) {
         // --- Existing Background Setup ---
         Image(
-            painter = painterResource(Res.drawable.bg_sea),
+            painter = painterResource(Res.drawable.bg_canyon),
             contentDescription = null,
             contentScale = ContentScale.Crop,
             modifier = Modifier.fillMaxSize()
@@ -61,7 +62,7 @@ fun TrackingScreen(modifier: Modifier = Modifier) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.7f)) // Slightly darker for contrast
+                .background(Color.Black.copy(alpha = 0.75f)) // Slightly darker for contrast
         )
 
         // --- Main Content ---

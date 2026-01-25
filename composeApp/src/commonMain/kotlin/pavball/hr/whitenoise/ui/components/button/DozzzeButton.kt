@@ -1,5 +1,6 @@
 package pavball.hr.whitenoise.ui.components.button
 
+import androidx.compose.foundation.layout.RowScope
 import androidx.compose.foundation.layout.width
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -13,7 +14,8 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.Dp
-
+import pavball.hr.whitenoise.ui.theme.DarkNavy
+import pavball.hr.whitenoise.ui.theme.LightGray
 
 @Composable
 fun DozzzeButton(
@@ -24,13 +26,19 @@ fun DozzzeButton(
     buttonTextWeight: FontWeight,
     buttonWidth: Dp,
     shape: Shape,
+    backgroundColor: Color = LightGray,
+    textColor: Color = DarkNavy,
     onClicked: () -> Unit,
+    content: @Composable (RowScope.() -> Unit) = {},
 ) {
-
     Button(
         onClick = { onClicked() },
         modifier = modifier.width(buttonWidth),
-        colors = ButtonDefaults.buttonColors(containerColor = Color.White),
+        // 2. Use the parameters here
+        colors = ButtonDefaults.buttonColors(
+            containerColor = backgroundColor,
+            contentColor = textColor
+        ),
         shape = shape
     ) {
         Text(
@@ -38,9 +46,10 @@ fun DozzzeButton(
             style = buttonTextStyle,
             fontFamily = buttonTextFont,
             fontWeight = buttonTextWeight,
-            textAlign = TextAlign.Center
+            textAlign = TextAlign.Center,
+            color = textColor
         )
+
+        content
     }
-
-
 }

@@ -6,6 +6,8 @@ import org.jetbrains.compose.resources.painterResource
 import whitenoise.composeapp.generated.resources.Res
 import whitenoise.composeapp.generated.resources.ic_edit
 import whitenoise.composeapp.generated.resources.ic_home
+import whitenoise.composeapp.generated.resources.ic_notes
+import whitenoise.composeapp.generated.resources.ic_profile
 import whitenoise.composeapp.generated.resources.ic_settings
 
 sealed class Screens(val route: String, val title: String, val icon: @Composable () -> Painter) {
@@ -70,6 +72,41 @@ sealed class Screens(val route: String, val title: String, val icon: @Composable
             route = "add_sound",
             title = "Add Sound",
             icon = { painterResource(Res.drawable.ic_settings) }
+        )
+
+    data object Profile :
+        Screens(
+            route = "profile",
+            title = "Profile",
+            icon = { painterResource(Res.drawable.ic_profile) }
+        )
+
+    data object ManageProfile :
+        Screens(
+            route = "manage_profile",
+            title = "Manage profile",
+            icon = { painterResource(Res.drawable.ic_notes) }
+        )
+
+    data object Security :
+        Screens(
+            route = "security",
+            title = "Security",
+            icon = { painterResource(Res.drawable.ic_notes) }
+        )
+
+    data object Notifications :
+        Screens(
+            route = "notifications",
+            title = "Notifications",
+            icon = { painterResource(Res.drawable.ic_notes) }
+        )
+
+    data object Notes :
+        Screens(
+            route = "notes",
+            title = "Notes",
+            icon = { painterResource(Res.drawable.ic_notes) }
         )
 
 }

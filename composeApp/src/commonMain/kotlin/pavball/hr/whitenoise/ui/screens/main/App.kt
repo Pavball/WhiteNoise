@@ -7,9 +7,13 @@ import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.annotation.KoinExperimentalAPI
+import pavball.hr.whitenoise.ui.screens.splash.SplashScreen
 import pavball.hr.whitenoise.ui.theme.DozzzeTheme
 import pavball.hr.whitenoise.ui.viewmodels.MainScreenViewModel
 import pavball.hr.whitenoise.ui.viewmodels.MainScreenViewState
@@ -20,6 +24,7 @@ import pavball.hr.whitenoise.ui.viewmodels.MainScreenViewState.Companion.ThemeMo
 fun App() {
     val viewModel = koinViewModel<MainScreenViewModel>()
     val state by viewModel.viewState.collectAsState(initial = MainScreenViewState())
+    var showSplash by remember { mutableStateOf(true) }
 
     val isDark = when(state.themeMode){
         ThemeMode.DARK.name -> true
@@ -35,7 +40,15 @@ fun App() {
             modifier = Modifier.fillMaxSize(),
             color = MaterialTheme.colorScheme.background
         ) {
-            MainScreen()
+            if (showSplash) {
+                SplashScreen(
+                    onSplashFinished = {
+                        showSplash = false
+                    }
+                )
+            } else {
+                MainScreen()
+            }
         }
     }
 }

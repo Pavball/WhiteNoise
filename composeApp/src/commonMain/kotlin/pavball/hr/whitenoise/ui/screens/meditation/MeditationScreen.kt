@@ -13,6 +13,10 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -22,20 +26,25 @@ import androidx.compose.ui.unit.dp
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import pavball.hr.whitenoise.ui.components.button.DozzzeButton
-import pavball.hr.whitenoise.ui.components.input.DreamJournalInput
+import pavball.hr.whitenoise.ui.components.effects.GlowingTimerCircle
 import pavball.hr.whitenoise.ui.components.utils.SpacerHelper
+import pavball.hr.whitenoise.ui.theme.DarkNavy
+import pavball.hr.whitenoise.ui.theme.LightGray
 import pavball.hr.whitenoise.ui.theme.getCustomBalooFontFamily
 import pavball.hr.whitenoise.ui.theme.getCustomQuicksandFontFamily
 import whitenoise.composeapp.generated.resources.Res
 import whitenoise.composeapp.generated.resources.bg_sea
 import whitenoise.composeapp.generated.resources.meditations
-import whitenoise.composeapp.generated.resources.save
 
 @Composable
 fun MeditationScreen(modifier: Modifier = Modifier) {
 
     val balooFont = getCustomBalooFontFamily()
     val quickSandFont = getCustomQuicksandFontFamily()
+
+    var isActive by remember { mutableStateOf(false) }
+
+
 
     Box(modifier = Modifier.fillMaxSize()) {
         Image(
@@ -48,7 +57,7 @@ fun MeditationScreen(modifier: Modifier = Modifier) {
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .background(Color.Black.copy(alpha = 0.6f))
+                .background(Color.Black.copy(alpha = 0.75f))
         )
 
         Column(
@@ -66,12 +75,15 @@ fun MeditationScreen(modifier: Modifier = Modifier) {
 
             SpacerHelper(92.dp)
 
-            DreamJournalInput(quickSandFont)
+            GlowingTimerCircle(
+                font = quickSandFont,
+                isActive = isActive,
+            )
 
             SpacerHelper(50.dp)
 
             Text(
-                "How do you feel today?",
+                text = if (isActive) "Meditation for" else "How do you feel today?",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onPrimaryFixed,
                 fontFamily = quickSandFont,
@@ -79,40 +91,46 @@ fun MeditationScreen(modifier: Modifier = Modifier) {
             )
             SpacerHelper(20.dp)
 
-            Row(modifier = modifier.fillMaxWidth(), horizontalArrangement = Arrangement.End) {
+            Row(
+                modifier = modifier.fillMaxWidth(),
+                horizontalArrangement = if (!isActive) Arrangement.End else Arrangement.Center
+            ) {
                 Text(
-                    modifier = modifier.padding(end = 23.dp),
+                    modifier = if(!isActive) modifier.padding(end = 23.dp) else modifier,
                     text = "Anxiety",
                     style = MaterialTheme.typography.displaySmall,
                     color = MaterialTheme.colorScheme.onPrimaryFixed,
                     fontFamily = quickSandFont,
                     fontWeight = FontWeight.SemiBold
                 )
+                if (!isActive) {
+                    Text(
+                        modifier = modifier.padding(end = 23.dp),
+                        text = "Sad",
+                        style = MaterialTheme.typography.displaySmall,
+                        color = MaterialTheme.colorScheme.onPrimaryFixed,
+                        fontFamily = quickSandFont,
+                        fontWeight = FontWeight.SemiBold
+                    )
 
-                Text(
-                    modifier = modifier.padding(end = 23.dp),
-                    text = "Sad",
-                    style = MaterialTheme.typography.displaySmall,
-                    color = MaterialTheme.colorScheme.onPrimaryFixed,
-                    fontFamily = quickSandFont,
-                    fontWeight = FontWeight.SemiBold
-                )
-
-                Text(
-                    modifier = modifier.padding(end = 23.dp),
-                    text = "Happy",
-                    style = MaterialTheme.typography.displaySmall,
-                    color = MaterialTheme.colorScheme.onPrimaryFixed,
-                    fontFamily = quickSandFont,
-                    fontWeight = FontWeight.SemiBold
-                )
+                    Text(
+                        modifier = modifier.padding(end = 23.dp),
+                        text = "Happy",
+                        style = MaterialTheme.typography.displaySmall,
+                        color = MaterialTheme.colorScheme.onPrimaryFixed,
+                        fontFamily = quickSandFont,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
             }
 
             SpacerHelper(25.dp)
 
             DozzzeButton(
-                onClicked = {},
-                buttonText = stringResource(Res.string.save),
+                onClicked = { isActive = !isActive },
+                buttonText = if (isActive) "Pause" else "Carry on",
+                backgroundColor = if (isActive) DarkNavy else Color.White,
+                textColor = if (isActive) LightGray else DarkNavy,
                 buttonWidth = 150.dp,
                 buttonTextStyle = MaterialTheme.typography.displaySmall,
                 buttonTextFont = quickSandFont,
