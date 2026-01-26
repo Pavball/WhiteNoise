@@ -32,6 +32,13 @@ sealed class Screens(val route: String, val title: String, val icon: @Composable
             icon = { painterResource(Res.drawable.ic_edit) }
         )
 
+    data object SelectSound :
+        Screens(
+            route = "select_sounds",
+            title = "Select Sounds",
+            icon = { painterResource(Res.drawable.ic_edit) }
+        )
+
     data object Options :
         Screens(
             route = "options",
@@ -106,6 +113,27 @@ sealed class Screens(val route: String, val title: String, val icon: @Composable
         Screens(
             route = "notes",
             title = "Notes",
+            icon = { painterResource(Res.drawable.ic_notes) }
+        )
+
+    data object Register :
+        Screens(
+            route = "register",
+            title = "Register",
+            icon = { painterResource(Res.drawable.ic_notes) }
+        )
+
+    data object Login :
+        Screens(
+            route = "login",
+            title = "Login",
+            icon = { painterResource(Res.drawable.ic_notes) }
+        )
+
+    data object ForgotPassword :
+        Screens(
+            route = "forgot_password",
+            title = "Forgot Password",
             icon = { painterResource(Res.drawable.ic_notes) }
         )
 

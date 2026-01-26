@@ -199,4 +199,3 @@ fun NotificationRow(
     }
 }
 
-// Helper for scaling logic if needed (Standard compose scale modifier)

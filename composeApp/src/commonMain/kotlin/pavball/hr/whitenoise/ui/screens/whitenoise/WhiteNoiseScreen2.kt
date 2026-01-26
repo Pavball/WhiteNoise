@@ -48,6 +48,7 @@ import pavball.hr.whitenoise.ui.components.dialog.AddCustomSoundDialog
 import pavball.hr.whitenoise.ui.components.effects.WaveformVisualizer
 import pavball.hr.whitenoise.ui.components.utils.SpacerHelper
 import pavball.hr.whitenoise.ui.screens.main.Screens
+import pavball.hr.whitenoise.ui.screens.sound.select.SelectSoundScreen
 import pavball.hr.whitenoise.ui.theme.DarkNavy
 import pavball.hr.whitenoise.ui.theme.LightGray
 import pavball.hr.whitenoise.ui.theme.Mint
@@ -159,7 +160,7 @@ internal fun WhiteNoiseScreen2(
                         shape = RoundedCornerShape(20.dp),
                         backgroundColor = Color.White.copy(alpha = 0.9f),
                         textColor = Color(0xFF1B2236),
-                        onClicked = { expanded = true }
+                        onClicked = { /*expanded = true*/ navController.navigate(Screens.SelectSound.route) }
                     )
 
                     // Dropdown Logic
