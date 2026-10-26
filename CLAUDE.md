@@ -21,11 +21,24 @@ Run from the repo root (Windows: use `gradlew.bat` or `./gradlew` from Git Bash)
 ```bash
 ./gradlew :composeApp:assembleDebug              # build Android debug APK
 ./gradlew :composeApp:installDebug               # install on connected device/emulator
+./gradlew :composeApp:assembleRelease            # signed, R8-minified release APK (see "Release signing")
 ./gradlew :composeApp:generateCommonMainAppDatabaseInterface   # regenerate SQLDelight code
 ./gradlew :composeApp:compileKotlinIosSimulatorArm64           # compile iOS (needs macOS)
 ```
 
 iOS app: open `iosApp/iosApp.xcodeproj` in Xcode (macOS only). There are no tests in the project.
+
+`adb` may see more than one device (the emulator and a personal phone). Target the emulator explicitly
+(`adb -s emulator-5554 …` or `ANDROID_SERIAL=emulator-5554`) and don't install to or modify a physical phone unasked.
+
+### Release signing
+
+`composeApp/build.gradle.kts` signs release builds from `keystore.properties` in the repo root
+(`storeFile`, `storePassword`, `keyAlias`, `keyPassword`). That file and the keystore
+(`~/.android/dozzze-release.jks`, alias `dozzze`) are git-ignored and exist only on the owner's PC; without them the
+release APK is built unsigned. Never commit them or print the password. Every update must be signed with the same key,
+or it won't install over an existing install. Bump `versionCode` / `versionName` in `composeApp/build.gradle.kts`
+before shipping a new APK. Output: `composeApp/build/outputs/apk/release/composeApp-release.apk`.
 
 ## Tech stack
 
