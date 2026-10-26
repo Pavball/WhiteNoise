@@ -36,7 +36,8 @@ actual fun rememberSoundPicker(
                     Intent.FLAG_GRANT_READ_URI_PERMISSION
                 )
 
-                val name = getDisplayName(uri)
+                // "Fan noise.mp3" -> "Fan noise"
+                val name = getDisplayName(uri).substringBeforeLast('.').ifBlank { "Custom sound" }
 
                 onPicked(
                     CustomSound(

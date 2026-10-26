@@ -1,3 +1,4 @@
 <resources>
     <string name="app_name">Dozzze</string>
+    <string name="notification_timer_left">Sleep timer · %1$d min left</string>
 </resources>

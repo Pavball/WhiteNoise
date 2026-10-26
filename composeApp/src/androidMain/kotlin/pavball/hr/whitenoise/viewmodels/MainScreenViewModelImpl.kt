@@ -1,34 +1,41 @@
 package pavball.hr.whitenoise.viewmodels
 
+import android.content.ComponentName
 import android.content.Context
-import android.net.Uri
-import androidx.media3.common.MediaItem
-import androidx.media3.exoplayer.ExoPlayer
-import kotlinx.coroutines.Dispatchers
+import android.os.Bundle
+import androidx.core.content.ContextCompat
+import androidx.core.os.bundleOf
+import androidx.media3.common.Player
+import androidx.media3.session.MediaController
+import androidx.media3.session.SessionToken
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
-import kotlinx.coroutines.withContext
+import kotlinx.coroutines.isActive
 import pavball.hr.whitenoise.domain.model.CustomSound
 import pavball.hr.whitenoise.domain.usecase.DeleteCustomSoundUseCase
 import pavball.hr.whitenoise.domain.usecase.GetCustomSoundUseCase
 import pavball.hr.whitenoise.domain.usecase.InsertCustomSoundUseCase
 import pavball.hr.whitenoise.domain.usecase.UpdateCustomSoundColorUseCase
 import pavball.hr.whitenoise.domain.usecase.UpdateCustomSoundUseCase
+import pavball.hr.whitenoise.playback.PlaybackContract
+import pavball.hr.whitenoise.playback.PlaybackContract.TimerSnapshot
+import pavball.hr.whitenoise.playback.PlaybackService
 import pavball.hr.whitenoise.ui.components.SettingsDataStore
-import pavball.hr.whitenoise.ui.components.UserSettings
+import pavball.hr.whitenoise.ui.components.utils.CustomSoundPalette
 import pavball.hr.whitenoise.ui.viewmodels.MainScreenViewModel
-import pavball.hr.whitenoise.ui.viewmodels.MainScreenViewState
 import java.util.Locale
 import kotlin.time.Clock
-import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.Duration.Companion.seconds
 import kotlin.time.ExperimentalTime
-import kotlin.time.Instant
 
+/**
+ * Playback and the sleep timer live in [PlaybackService] so they survive the
+ * UI being closed. This ViewModel talks to it through a [MediaController] and
+ * mirrors its state into the view state.
+ */
 internal class MainScreenViewModelImpl(
     private val context: Context,
     private val settings: SettingsDataStore,
@@ -43,27 +50,27 @@ internal class MainScreenViewModelImpl(
     override val pendingRename: StateFlow<CustomSound?> =
         _pendingRename.asStateFlow()
 
-    override val currentSoundColorId: String?
-        get() {
-            val id = getCurrentState().currentSound ?: return null
-            return getCurrentState().customSounds.firstOrNull { it.id == id }?.colorId
-        }
+    private var controller: MediaController? = null
+    private val pendingControllerActions = mutableListOf<(MediaController) -> Unit>()
+    private var timerSnapshot: TimerSnapshot? = null
+    private var timerTickerJob: Job? = null
 
-    private var exoPlayer: ExoPlayer? = null
-    private var currentSound: String? = null
-    private var fadeOutEnabled: Boolean = true
-    private var fadeStarted = false
-    private var timerJob: Job? = null
-
-    @OptIn(ExperimentalTime::class)
-    private var endTime: Instant? = null
-
-    private val resourceMap = mapOf(
-        "rain" to pavball.hr.whitenoise.R.raw.rain,
-        "ocean" to pavball.hr.whitenoise.R.raw.ocean_waves,
-        "forest" to pavball.hr.whitenoise.R.raw.winter_forest,
-        "thunder" to pavball.hr.whitenoise.R.raw.rain_thunder
+    private val controllerFuture = MediaController.Builder(
+        context,
+        SessionToken(context, ComponentName(context, PlaybackService::class.java))
     )
+        .setListener(object : MediaController.Listener {
+            override fun onExtrasChanged(controller: MediaController, extras: Bundle) {
+                applyTimerExtras(extras)
+            }
+        })
+        .buildAsync()
+
+    private val playerListener = object : Player.Listener {
+        override fun onEvents(player: Player, events: Player.Events) {
+            syncPlaybackState()
+        }
+    }
 
     // --------------------------------------------------------------------
     // ||                 INITIALIZE SECTION                               ||
@@ -93,16 +100,32 @@ internal class MainScreenViewModelImpl(
                 }
             }
         }
+        controllerFuture.addListener(
+            { onControllerReady() },
+            ContextCompat.getMainExecutor(context)
+        )
+    }
+
+    private fun onControllerReady() {
+        if (!viewModelScope.isActive) return // closed before the connection finished
+        val connected = runCatching { controllerFuture.get() }.getOrNull() ?: return
+        controller = connected
+        connected.addListener(playerListener)
+        applyTimerExtras(connected.sessionExtras)
+        syncPlaybackState()
+        pendingControllerActions.forEach { it(connected) }
+        pendingControllerActions.clear()
     }
 
     // --------------------------------------------------------------------
     // ||                 CUSTOM SOUND SECTION                           ||
     // --------------------------------------------------------------------
     @OptIn(ExperimentalTime::class)
-    override fun addUserSound(displayName: String, uri: String, colorId: String) {
+    override fun addUserSound(displayName: String, uri: String) {
         runCommand {
-            val id = uri // using uri string as id; you can use UUID if desired
+            val id = uri // the persisted content uri is unique per file
             val ts = Clock.System.now().toEpochMilliseconds()
+            val colorId = CustomSoundPalette.colorFor(getCurrentState().customSounds.size)
             insertCustomSoundUseCase(id, displayName, uri, ts, colorId)
             // set pending rename so UI opens dialog
             _pendingRename.value = CustomSound(
@@ -119,7 +142,7 @@ internal class MainScreenViewModelImpl(
         runCommand {
             updateCustomSoundUseCase(id, newName)
             // UI will refresh from DB flow
-            withContext(Dispatchers.Main) { _pendingRename.value = null }
+            _pendingRename.value = null
         }
     }
 
@@ -127,309 +150,204 @@ internal class MainScreenViewModelImpl(
         runCommand {
             updateCustomSoundColorUseCase(id, colorId)
             // UI will refresh from DB flow
-            withContext(Dispatchers.Main) { _pendingRename.value = null }
+            _pendingRename.value = null
         }
     }
 
     override fun removeUserSound(id: String) {
         runCommand {
             deleteCustomSoundUseCase(id)
-            withContext(Dispatchers.Main) {
-                if (_pendingRename.value?.id == id) _pendingRename.value = null
-            }
+            if (_pendingRename.value?.id == id) _pendingRename.value = null
         }
     }
 
     override fun clearPendingRename() {
-        runCommand {
-            withContext(Dispatchers.Main) {
-                _pendingRename.value =
-                    null
-            }
-        }
+        _pendingRename.value = null
     }
 
     // --------------------------------------------------------------------
     // ||                 PLAYBACK SECTION                               ||
     // --------------------------------------------------------------------
     override fun playSound(soundId: String) {
+        val state = getCurrentState()
+        runCommand { updateState { copy(selectedSoundKey = soundId, playbackError = false) } }
+        sendCommand(
+            PlaybackContract.CMD_PLAY_SOUND,
+            bundleOf(PlaybackContract.ARG_SOUND_ID to soundId)
+        )
+        // Start the chosen sleep timer unless one is already counting down.
+        if (state.remainingTime == null && state.timerSelectedMinutes > 0) {
+            startTimer(state.timerSelectedMinutes)
+        }
+    }
+
+    override fun togglePlayPause() {
+        val state = getCurrentState()
+        if (state.isPlaying) {
+            withController { it.pause() }
+        } else {
+            playSound(state.selectedSoundKey)
+        }
+    }
+
+    override fun skipToNext() = skipBy(1)
+
+    override fun skipToPrevious() = skipBy(-1)
+
+    private fun skipBy(step: Int) {
+        val state = getCurrentState()
+        val ids = state.playlistIds
+        if (ids.isEmpty()) return
+        val current = ids.indexOf(state.selectedSoundKey).coerceAtLeast(0)
+        playSound(ids[(current + step + ids.size) % ids.size])
+    }
+
+    private fun syncPlaybackState() {
+        val c = controller ?: return
+        val hasMedia = c.playbackState != Player.STATE_IDLE && c.currentMediaItem != null
         runCommand {
             updateState {
                 copy(
-                    isLoading = true, currentSound = soundId,
-                    isCleared = false
+                    isPlaying = c.playWhenReady && hasMedia && c.playbackState != Player.STATE_ENDED,
+                    isLoading = c.playWhenReady && c.playbackState == Player.STATE_BUFFERING,
+                    playbackError = c.playerError != null,
+                    // follow sounds changed from the notification or headset
+                    selectedSoundKey = if (hasMedia) c.currentMediaItem?.mediaId ?: selectedSoundKey
+                    else selectedSoundKey
                 )
             }
-            runOnMain {
-                val uri = resolveSoundUri(soundId) ?: run {
-                    runCommand { updateState { copy(isLoading = false) } }
-                    return@runOnMain
-                }
-                val sameSound = currentSound == soundId && exoPlayer != null
-                if (sameSound) {
-                    exoPlayer?.playWhenReady = true
-                    exoPlayer?.play()
-                } else {
-                    exoPlayer?.release()
-                    val player = ExoPlayer.Builder(context).build().also {
-                        val mediaItem = MediaItem.fromUri(uri)
-                        it.setMediaItem(mediaItem)
-                        it.prepare()
-                        it.repeatMode = 1
-                        it.play()
-                    }
-                    exoPlayer = player
-                    currentSound = soundId
-                }
-            }
-            updateState { copy(isPlaying = true, isLoading = false) }
-
-            runCommand {
-                settings.saveSettings(getCurrentState().toUserSettings())
-            }
         }
     }
-
-    override fun pauseSound() {
-        runCommand {
-            runOnMain {
-                exoPlayer?.pause()
-            }
-            updateState {
-                copy(isPlaying = false)
-            }
-        }
-    }
-
-    override fun stopSound() {
-        cancelTimer()
-        runCommand {
-            runOnMain { exoPlayer?.pause(); exoPlayer?.seekTo(0) }
-            updateState { copy(isPlaying = false, isCleared = true) }
-        }
-    }
-
 
     // --------------------------------------------------------------------
     // ||                 TIMER SECTION                                  ||
     // --------------------------------------------------------------------
-
-    @OptIn(ExperimentalTime::class)
-    override fun startTimer(minutes: Int, fadeOutEnabled: Boolean) {
-        cancelTimer()
-        this.fadeOutEnabled = fadeOutEnabled
-        val totalTimeMs = minutes * 60 * 1000L
-        var remainingTimeMs = totalTimeMs
-        fadeStarted = false
-        endTime = Clock.System.now().plus(remainingTimeMs.milliseconds)
-        timerJob = runCommand {
-            while (remainingTimeMs > 0) {
-                delay(1.seconds)
-                val remaining = endTime?.let { it - Clock.System.now() } ?: break
-                remainingTimeMs = remaining.inWholeMilliseconds.coerceAtLeast(0)
-                if (fadeOutEnabled && !fadeStarted && remainingTimeMs <=
-                    30_000L
-                ) {
-                    fadeStarted = true
-                    fadeOutVolume()
-                }
-                updateState {
-                    copy(
-                        remainingTime = remainingTimeMs,
-                        totalTime = totalTimeMs,
-                        fadeStarted = fadeStarted
-                    )
-                }
-            }
-            if (remainingTimeMs <= 0) {
-                stopSound()
-                updateState { copy(timerFinished = true) }
-            }
-        }
-        runCommand { settings.saveSettings(getCurrentState().toUserSettings()) }
-    }
-
-    @OptIn(ExperimentalTime::class)
-    override fun pauseTimer() {
-        timerJob?.cancel(); timerJob = null; endTime = null
-        runCommand { updateState { copy(isPlaying = false) } }
-    }
-
-    @OptIn(ExperimentalTime::class)
-    override fun resumeTimer(
-        onFadeStart: () -> Unit, onTimerFinished: () ->
-        Unit
-    ) {
+    override fun updateSelectedTimer(minutes: Int) {
         val state = getCurrentState()
-        val remainingMs = state.remainingTime ?: return
-        endTime = Clock.System.now().plus(remainingMs.milliseconds)
-        timerJob = runCommand {
-            var remainingTimeMs = remainingMs
-            fadeStarted = state.fadeStarted
-            runOnMain {
-                if (exoPlayer == null && currentSound != null) {
-                    val uri = resolveSoundUri(currentSound!!)
-                    if (uri != null) {
-                        exoPlayer = ExoPlayer.Builder(context).build().also {
-                            val mediaItem = MediaItem.fromUri(uri)
-                            it.setMediaItem(mediaItem)
-                            it.prepare()
-                            it.play()
-                        }
-                    }
-                } else {
-                    exoPlayer?.playWhenReady = true
-                    exoPlayer?.play()
-                }
-            }
-            updateState { copy(isPlaying = true) }
-            while (remainingTimeMs > 0) {
-                delay(1.seconds)
-                val remaining = endTime?.let { it - Clock.System.now() } ?: break
-                remainingTimeMs = remaining.inWholeMilliseconds.coerceAtLeast(0)
-                if (fadeOutEnabled && !fadeStarted && remainingTimeMs <=
-                    state.fadeDuration.toLong()
-                ) {
-                    fadeStarted = true
-                    onFadeStart()
-                    fadeOutVolume()
-                }
-                updateState {
-                    copy(
-                        remainingTime = remainingTimeMs, fadeStarted
-                        = fadeStarted
-                    )
-                }
-            }
-            if (remainingTimeMs <= 0) {
-                onTimerFinished(); stopSound(); updateState {
-                    copy(timerFinished = true)
+        runCommand {
+            updateState { copy(timerSelectedMinutes = minutes) }
+            settings.saveTimerMinutes(minutes)
+        }
+        when {
+            minutes == 0 -> if (state.remainingTime != null) cancelTimer()
+            // Picking a new duration while a sound or timer is going restarts the timer.
+            state.isPlaying || state.remainingTime != null -> startTimer(minutes)
+        }
+    }
+
+    override fun extendTimer(minutes: Int) {
+        sendCommand(
+            PlaybackContract.CMD_EXTEND_TIMER,
+            bundleOf(PlaybackContract.ARG_MINUTES to minutes)
+        )
+    }
+
+    override fun cancelTimer() {
+        sendCommand(PlaybackContract.CMD_CANCEL_TIMER)
+    }
+
+    private fun startTimer(minutes: Int) {
+        val state = getCurrentState()
+        sendCommand(
+            PlaybackContract.CMD_START_TIMER,
+            bundleOf(
+                PlaybackContract.ARG_MINUTES to minutes,
+                PlaybackContract.ARG_FADE_ENABLED to state.fadeEnabled,
+                PlaybackContract.ARG_FADE_SECONDS to state.fadeDuration
+            )
+        )
+    }
+
+    private fun applyTimerExtras(extras: Bundle) {
+        val snapshot = TimerSnapshot.fromBundle(extras)
+        timerSnapshot = snapshot
+        timerTickerJob?.cancel()
+        timerTickerJob = null
+        renderTimer()
+        if (snapshot?.isRunning == true) {
+            // The service only publishes changes; count down locally in between.
+            timerTickerJob = runCommand {
+                while (isActive) {
+                    delay(TICK_MS - snapshot.remainingMsNow() % TICK_MS)
+                    renderTimer()
                 }
             }
         }
     }
 
-    @OptIn(ExperimentalTime::class)
-    override fun cancelTimer() {
-        timerJob?.cancel(); timerJob = null; endTime = null; fadeStarted = false
+    private fun renderTimer() {
+        val snapshot = timerSnapshot
         runCommand {
             updateState {
                 copy(
-                    isPlaying = false, remainingTime =
-                        null, totalTime = null, fadeStarted = false, timerFinished = false
+                    remainingTime = snapshot?.remainingMsNow(),
+                    totalTime = snapshot?.totalMs,
+                    isTimerRunning = snapshot?.isRunning == true,
+                    fadeStarted = snapshot?.fadeStarted == true
                 )
             }
         }
-    }
-
-    override fun close() {
-        super.close()
-        exoPlayer?.release(); exoPlayer = null
     }
 
     // --------------------------------------------------------------------
     // ||                 UPDATE SECTION                                 ||
     // --------------------------------------------------------------------
-
-    override fun updateSelectedSoundKey(selectedSoundKey: String) {
-        runCommand {
-            updateState { copy(selectedSoundKey = selectedSoundKey) }
-            settings.saveSettings(getCurrentState().toUserSettings())
-        }
-    }
-
-    override fun updateSelectedTimer(minutes: Int) {
-        runCommand {
-            // update and persist in the same coroutine
-            updateState { copy(timerSelectedMinutes = minutes) }
-            persistCurrentSettings()
-        }
-    }
-
     override fun updateFadeEnabled(enabled: Boolean) {
         runCommand {
             updateState { copy(fadeEnabled = enabled) }
-            persistCurrentSettings()
+            settings.saveFadeEnabled(enabled)
         }
-    }
-
-    override fun updateFadeDuration(newValue: Int) {
-        runCommand {
-            updateState { copy(fadeDuration = newValue) }
-            persistCurrentSettings()
-        }
-    }
-
-    override fun saveThemeModeToUserPrefs(themeMode: String) {
-        runCommand {
-            updateState { copy(themeMode = themeMode.uppercase(Locale.getDefault())) }
-            persistCurrentSettings()
-        }
+        sendFadeSettings(enabled, getCurrentState().fadeDuration)
     }
 
     override fun saveFadeOutTimeToUserPrefs(fadeTime: Int) {
         runCommand {
             updateState { copy(fadeDuration = fadeTime) }
-            persistCurrentSettings()
+            settings.saveFadeDuration(fadeTime)
+        }
+        sendFadeSettings(getCurrentState().fadeEnabled, fadeTime)
+    }
+
+    override fun saveThemeModeToUserPrefs(themeMode: String) {
+        val mode = themeMode.uppercase(Locale.ROOT)
+        runCommand {
+            updateState { copy(themeMode = mode) }
+            settings.saveThemeMode(mode)
         }
     }
 
     // --------------------------------------------------------------------
     // ||                 HELPER FUNCTIONS SECTION                       ||
     // --------------------------------------------------------------------
-
-    private fun fadeOutVolume() = runCommand {
-        val currentState = getCurrentState()
-
-        val fadeDurationMs = currentState.fadeDuration.toLong()
-        val steps = 30
-        val delayPerStep = fadeDurationMs / steps
-        val volumeStep = 1f / steps
-        for (i in 1..steps) {
-            val newVolume = (1f - i * volumeStep).coerceIn(0f, 1f)
-            withContext(Dispatchers.Main.immediate) {
-                exoPlayer?.volume =
-                    newVolume
-            }
-            delay(delayPerStep)
-        }
-        withContext(Dispatchers.Main.immediate) { stopSound() }
+    private fun sendFadeSettings(enabled: Boolean, seconds: Int) {
+        sendCommand(
+            PlaybackContract.CMD_SET_FADE,
+            bundleOf(
+                PlaybackContract.ARG_FADE_ENABLED to enabled,
+                PlaybackContract.ARG_FADE_SECONDS to seconds
+            )
+        )
     }
 
-    private fun MainScreenViewState.toUserSettings() = UserSettings(
-        lastSound = currentSound ?: selectedSoundKey,
-        timerMinutes = timerSelectedMinutes,
-        fadeEnabled = fadeEnabled,
-        fadeDuration = fadeDuration,
-        themeMode = themeMode
-    )
-
-    private fun resolveSoundUri(soundId: String): Uri? {
-        if (soundId.startsWith("content://") || soundId.startsWith("file://")
-            || soundId.startsWith("http")
-        ) {
-            return Uri.parse(soundId)
-        }
-        val resId = resourceMap[soundId]
-        return if (resId != null) {
-            Uri.parse("android.resource://${context.packageName}/$resId")
-        } else {
-            return try {
-                Uri.parse(soundId).takeIf { it.scheme != null }
-            } catch (_: Exception) {
-                null
-            }
-        }
+    private fun sendCommand(action: String, args: Bundle = Bundle.EMPTY) {
+        withController { it.sendCustomCommand(PlaybackContract.command(action), args) }
     }
 
-    private suspend fun persistCurrentSettings() {
-        settings.saveSettings(getCurrentState().toUserSettings())
+    /** Runs [action] now, or as soon as the connection to the service is ready. */
+    private fun withController(action: (MediaController) -> Unit) {
+        val c = controller
+        if (c != null) action(c) else pendingControllerActions += action
     }
 
-    private suspend fun runOnMain(block: () -> Unit) {
-        withContext(Dispatchers.Main) { block() }
+    override fun close() {
+        super.close()
+        controller?.removeListener(playerListener)
+        controller = null
+        pendingControllerActions.clear()
+        MediaController.releaseFuture(controllerFuture)
     }
 
+    private companion object {
+        const val TICK_MS = 1_000L
+    }
 }
-
-

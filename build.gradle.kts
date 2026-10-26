@@ -1,3 +1,11 @@
+buildscript {
+    repositories { google() }
+    dependencies {
+        // Newer R8 than AGP 8.9 bundles, so release minification understands Kotlin 2.2 metadata.
+        classpath(libs.android.r8)
+    }
+}
+
 plugins {
     // this is necessary to avoid the plugins to be loaded multiple times
     // in each subproject's classloader

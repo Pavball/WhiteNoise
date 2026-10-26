@@ -35,9 +35,7 @@ kotlin {
             implementation(libs.androidx.activity.compose)
             implementation(libs.androidx.media3.exoplayer)
             implementation(libs.androidx.media3.session)
-            implementation(libs.androidx.media3.ui)
             implementation(libs.androidx.media3.datasource)
-            implementation(libs.androidx.media3.transformer)
             implementation(libs.androidx.material3.android)
 
             implementation(libs.androidx.core.ktx)
@@ -47,8 +45,6 @@ kotlin {
             implementation(libs.androidx.compose.ui.tooling)
             implementation(libs.androidx.compose.ui.tooling.preview)
             implementation(libs.androidx.activity.compose)
-            implementation(libs.ktor.client.okhttp)
-            implementation(libs.ktor.client)
 
             implementation(compose.preview)
 
@@ -66,7 +62,6 @@ kotlin {
             implementation(libs.sqldelight.android)
         }
         iosMain.dependencies {
-            implementation(libs.ktor.client.darwin)
             implementation(libs.koin.core)
 
             implementation(libs.sqldelight.native)
@@ -81,23 +76,12 @@ kotlin {
             implementation(compose.components.resources)
             implementation(compose.components.uiToolingPreview)
 
-            implementation(libs.ktor.client.core)
-            implementation(libs.ktor.client.content.negotiation)
-            implementation(libs.ktor.serialization.kotlinx.json)
-            implementation(libs.ktor.client.encoding)
-            implementation(libs.ktor.client.logging)
-            implementation(libs.ktor.client.json)
             implementation(libs.koin.compose.viewmodel)
-            implementation(libs.coil.compose)
-            implementation(libs.coil.network.ktor)
-            implementation(libs.coil.compose.core)
-            implementation(libs.coil.mp)
 
             implementation(libs.koin.core)
 
 
             implementation(libs.kotlinx.datetime)
-            implementation(libs.kmp.date.time.picker)
 
             implementation(libs.kotlin.cor)
             implementation(libs.coroutines.extensions.jvm)
@@ -105,9 +89,6 @@ kotlin {
             implementation(libs.lifecycle.viewmodel)
 
 
-            implementation(libs.compottie)
-            implementation(libs.compottie.dot)
-            implementation(libs.compottie.network)
 
             implementation(libs.sqldelight.coroutines)
 
@@ -136,7 +117,10 @@ android {
     }
     buildTypes {
         getByName("release") {
-            isMinifyEnabled = false
+            // R8: strips unused code and resources (the debug build keeps everything)
+            isMinifyEnabled = true
+            isShrinkResources = true
+            proguardFiles(getDefaultProguardFile("proguard-android-optimize.txt"))
         }
     }
     compileOptions {
