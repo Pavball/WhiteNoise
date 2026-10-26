@@ -1,0 +1,2 @@
+-- Auth was removed from the app; drop the table older installs may still have.
+DROP TABLE IF EXISTS user;

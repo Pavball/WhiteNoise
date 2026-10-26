@@ -14,56 +14,69 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import org.jetbrains.compose.resources.painterResource
-import pavball.hr.whitenoise.domain.model.NoteItem
+import org.jetbrains.compose.resources.stringResource
+import org.koin.compose.viewmodel.koinViewModel
+import pavball.hr.whitenoise.domain.model.JournalEntry
+import pavball.hr.whitenoise.domain.model.JournalType
+import pavball.hr.whitenoise.ui.components.button.DozzzeButton
+import pavball.hr.whitenoise.ui.components.utils.ArrowIcon
 import pavball.hr.whitenoise.ui.components.utils.SpacerHelper
-import pavball.hr.whitenoise.ui.screens.profile.ArrowIcon
+import pavball.hr.whitenoise.ui.components.utils.formatDate
 import pavball.hr.whitenoise.ui.theme.LightGray
 import pavball.hr.whitenoise.ui.theme.Mint
 import pavball.hr.whitenoise.ui.theme.getCustomBalooFontFamily
 import pavball.hr.whitenoise.ui.theme.getCustomQuicksandFontFamily
+import pavball.hr.whitenoise.ui.viewmodels.NotesViewModel
+import pavball.hr.whitenoise.ui.viewmodels.NotesViewState
 import whitenoise.composeapp.generated.resources.Res
 import whitenoise.composeapp.generated.resources.bg_moonlight
-import whitenoise.composeapp.generated.resources.ic_arrowright
+import whitenoise.composeapp.generated.resources.dream
+import whitenoise.composeapp.generated.resources.new_dream
+import whitenoise.composeapp.generated.resources.new_note
+import whitenoise.composeapp.generated.resources.no_notes
+import whitenoise.composeapp.generated.resources.note
+import whitenoise.composeapp.generated.resources.notes
 
 @Composable
-fun NotesScreen(modifier: Modifier = Modifier) {
+internal fun NotesScreen(
+    modifier: Modifier = Modifier,
+    onNewEntry: (JournalType) -> Unit,
+    onEditEntry: (JournalEntry) -> Unit,
+    viewModel: NotesViewModel = koinViewModel()
+) {
 
     val balooFont = getCustomBalooFontFamily()
     val quickSandFont = getCustomQuicksandFontFamily()
 
-    // Mock Data based on your image
-    val notes = listOf(
-        NoteItem("Dream", "14.01.2026.", "5★", "Sanjala sam da sam prošla MMK2..."),
-        NoteItem("Note", "12.01.2026.", "7h 5m", "Trajanje: 7h 05m (Solidno)\nKvaliteta: ★★★★☆ (4/5)\nBuđenje: 7:00 AM\nTijelo: Odmorno\nMentalno: Bistra glava"),
-        NoteItem("Dream", "11.01.2026.", "4★", "Walking through a dense forest..."),
-        NoteItem("Dream", "10.01.2026.", "3★", "Flying over the city..."),
-        NoteItem("Note", "09.01.2026.", "8h 0m", "Trajanje: 8h 00m\nKvaliteta: ★★★★★"),
-        NoteItem("Note", "07.01.2026.", "5h 45m", "Short sleep, feeling tired.")
-    )
+    val state by viewModel.viewState<NotesViewState>()
+        .collectAsState(initial = NotesViewState())
 
-    // State for showing details
-    var selectedNote by remember { mutableStateOf<NoteItem?>(null) }
+    // Id of the entry shown in the detail card
+    var selectedId by rememberSaveable { mutableStateOf<Long?>(null) }
+    val selectedEntry = state.entries.firstOrNull { it.id == selectedId }
 
     Box(modifier = Modifier.fillMaxSize()) {
         // 1. Background
@@ -88,56 +101,90 @@ fun NotesScreen(modifier: Modifier = Modifier) {
                 .padding(horizontal = 24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            SpacerHelper(60.dp)
+            SpacerHelper(48.dp)
 
             Text(
-                text = "Notes",
+                text = stringResource(Res.string.notes),
                 style = MaterialTheme.typography.headlineLarge,
                 fontFamily = balooFont,
                 fontWeight = FontWeight.Normal,
                 color = Mint
             )
 
-            SpacerHelper(30.dp)
+            SpacerHelper(20.dp)
+
+            Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                DozzzeButton(
+                    onClicked = { onNewEntry(JournalType.DREAM) },
+                    buttonText = stringResource(Res.string.new_dream),
+                    buttonWidth = 130.dp,
+                    buttonTextStyle = MaterialTheme.typography.bodySmall,
+                    buttonTextFont = quickSandFont,
+                    buttonTextWeight = FontWeight.Bold,
+                    shape = RoundedCornerShape(16.dp)
+                )
+                DozzzeButton(
+                    onClicked = { onNewEntry(JournalType.NOTE) },
+                    buttonText = stringResource(Res.string.new_note),
+                    buttonWidth = 130.dp,
+                    buttonTextStyle = MaterialTheme.typography.bodySmall,
+                    buttonTextFont = quickSandFont,
+                    buttonTextWeight = FontWeight.Bold,
+                    shape = RoundedCornerShape(16.dp)
+                )
+            }
+
+            SpacerHelper(24.dp)
+
+            if (state.isLoaded && state.entries.isEmpty()) {
+                Text(
+                    text = stringResource(Res.string.no_notes),
+                    fontFamily = quickSandFont,
+                    color = LightGray.copy(alpha = 0.8f),
+                    fontSize = 16.sp,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.padding(top = 24.dp)
+                )
+            }
 
             // List of Notes
             LazyColumn(
                 verticalArrangement = Arrangement.spacedBy(16.dp),
                 modifier = Modifier.fillMaxSize()
             ) {
-                items(notes) { note ->
+                items(state.entries, key = { it.id }) { entry ->
                     NoteItemRow(
-                        note = note,
+                        entry = entry,
                         fontFamily = quickSandFont,
-                        onClick = { selectedNote = note }
+                        onClick = { selectedId = entry.id }
                     )
                 }
-                item { SpacerHelper(100.dp) } // Bottom padding
+                item { SpacerHelper(24.dp) } // Bottom padding
             }
         }
 
         // 4. Modal Overlay (Detail View)
-        if (selectedNote != null) {
+        if (selectedEntry != null) {
             Box(
                 modifier = Modifier
                     .fillMaxSize()
                     .background(Color.Black.copy(alpha = 0.5f))
-                    .clickable { selectedNote = null }, // Dismiss on background click
+                    .clickable { selectedId = null }, // Dismiss on background click
                 contentAlignment = Alignment.Center
             ) {
-                if (selectedNote!!.type == "Dream") {
-                    DreamDetailCard(
-                        note = selectedNote!!,
-                        onClose = { selectedNote = null },
-                        fontFamily = quickSandFont
-                    )
-                } else {
-                    SleepDetailCard(
-                        note = selectedNote!!,
-                        onClose = { selectedNote = null },
-                        fontFamily = quickSandFont
-                    )
-                }
+                JournalDetailCard(
+                    entry = selectedEntry,
+                    onClose = { selectedId = null },
+                    onEdit = {
+                        selectedId = null
+                        onEditEntry(selectedEntry)
+                    },
+                    onDelete = {
+                        selectedId = null
+                        viewModel.deleteEntry(selectedEntry.id)
+                    },
+                    fontFamily = quickSandFont
+                )
             }
         }
     }
@@ -145,8 +192,8 @@ fun NotesScreen(modifier: Modifier = Modifier) {
 
 @Composable
 fun NoteItemRow(
-    note: NoteItem,
-    fontFamily: androidx.compose.ui.text.font.FontFamily,
+    entry: JournalEntry,
+    fontFamily: FontFamily,
     onClick: () -> Unit
 ) {
     Row(
@@ -157,6 +204,7 @@ fun NoteItemRow(
                 border = BorderStroke(1.dp, Mint), // Mint border
                 shape = RoundedCornerShape(20.dp)
             )
+            .clip(RoundedCornerShape(20.dp))
             .clickable { onClick() }
             .padding(horizontal = 20.dp),
         verticalAlignment = Alignment.CenterVertically,
@@ -164,7 +212,7 @@ fun NoteItemRow(
     ) {
         // Left: Type (Dream/Note)
         Text(
-            text = note.type,
+            text = stringResource(if (entry.type == JournalType.DREAM) Res.string.dream else Res.string.note),
             color = LightGray,
             fontFamily = fontFamily,
             fontWeight = FontWeight.Normal,
@@ -174,17 +222,17 @@ fun NoteItemRow(
 
         // Middle: Date
         Text(
-            text = note.date,
+            text = formatDate(entry.createdAt),
             color = LightGray,
             fontFamily = fontFamily,
             fontWeight = FontWeight.Normal,
             style = MaterialTheme.typography.displaySmall
         )
 
-        // Right Section: Detail + Arrow
+        // Right Section: Rating + Arrow
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text(
-                text = note.detail,
+                text = if (entry.rating > 0) "${entry.rating}★" else "",
                 color = LightGray,
                 fontFamily = fontFamily,
                 fontWeight = FontWeight.Normal,

@@ -31,8 +31,8 @@ import androidx.compose.ui.window.DialogProperties
 import com.github.skydoves.colorpicker.compose.ColorPickerController
 import com.github.skydoves.colorpicker.compose.HsvColorPicker
 import org.jetbrains.compose.resources.stringResource
-import pavball.hr.whitenoise.ui.screens.whitenoise.fromHex
-import pavball.hr.whitenoise.ui.screens.whitenoise.lighten
+import pavball.hr.whitenoise.ui.components.utils.fromHex
+import pavball.hr.whitenoise.ui.components.utils.lighten
 import whitenoise.composeapp.generated.resources.Res
 import whitenoise.composeapp.generated.resources.cancel
 import whitenoise.composeapp.generated.resources.choose_color_bg
@@ -110,6 +110,8 @@ fun AddCustomSoundDialog(
                     .fillMaxWidth()
                     .height(350.dp),
                 controller = controller,
+                // without this the picker starts at white and overwrites the sound's color
+                initialColor = initialColor,
                 onColorChanged = { envelope ->
                     pickedColorHex = envelope.hexCode
                     pickedColor = Color.fromHex(envelope.hexCode)

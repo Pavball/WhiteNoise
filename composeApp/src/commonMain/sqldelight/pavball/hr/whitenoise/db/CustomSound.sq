@@ -7,7 +7,7 @@ CREATE TABLE custom_sounds(
 );
 
 selectAll:
-SELECT * FROM custom_sounds;
+SELECT * FROM custom_sounds ORDER BY added_at;
 
 insertSound:
 INSERT OR REPLACE INTO custom_sounds(id, display_name, uri, added_at, colorId)

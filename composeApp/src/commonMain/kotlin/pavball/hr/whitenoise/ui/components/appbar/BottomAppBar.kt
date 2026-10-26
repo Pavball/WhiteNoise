@@ -21,7 +21,7 @@ import pavball.hr.whitenoise.ui.theme.Mint
 
 @Composable
 fun BottomNavigationBar(modifier: Modifier = Modifier, navController: NavController) {
-    val items = listOf(Screens.Home, Screens.Notes, Screens.Profile)
+    val items = listOf(Screens.Home, Screens.Notes, Screens.Options)
 
     BottomAppBar(
         containerColor = DarkNavy,

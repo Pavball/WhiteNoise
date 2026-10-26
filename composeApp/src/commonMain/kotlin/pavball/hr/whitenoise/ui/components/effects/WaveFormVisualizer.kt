@@ -17,6 +17,7 @@ import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import pavball.hr.whitenoise.ui.components.utils.lighten
 import kotlin.math.PI
 import kotlin.math.sin
 
@@ -24,7 +25,8 @@ import kotlin.math.sin
 fun WaveformVisualizer(
     isPlaying: Boolean,
     soundType: String?, // e.g. "ocean", "forest", "rain"
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    customColor: Color? = null // a custom sound's own color, overrides soundType
 ) {
     val infiniteTransition = rememberInfiniteTransition(label = "wave")
 
@@ -57,7 +59,9 @@ fun WaveformVisualizer(
     )
 
     // Gradients per sound type
-    val (mainGradient, glowColor) = when (soundType) {
+    val (mainGradient, glowColor) = if (customColor != null) {
+        Brush.verticalGradient(listOf(customColor.lighten(0.3f), customColor)) to customColor
+    } else when (soundType) {
         "ocean" -> Brush.verticalGradient(listOf(Color(0xFF42A5F5), Color(0xFF1976D2))) to Color(0xFF42A5F5)
         "forest" -> Brush.verticalGradient(listOf(Color(0xFF66BB6A), Color(0xFF2E7D32))) to Color(0xFF66BB6A)
         "rain" -> Brush.verticalGradient(listOf(Color(0xFF90A4AE), Color(0xFF546E7A))) to Color(0xFF90A4AE)

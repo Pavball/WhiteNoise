@@ -7,7 +7,10 @@ import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.withContext
 import pavball.hr.whitenoise.db.Custom_sounds
-import pavball.hr.whitenoise.db.User
+import pavball.hr.whitenoise.db.Journal_entry
+import pavball.hr.whitenoise.db.Meditation_session
+import pavball.hr.whitenoise.db.SelectCompleted
+import pavball.hr.whitenoise.db.Sleep_session
 
 internal interface LocalDataSource {
 
@@ -22,10 +25,24 @@ internal interface LocalDataSource {
 
     suspend fun updateCustomSoundColorById(id: String, colorId: String)
 
-    fun getLoggedInUser(): Flow<User?>
-    suspend fun getUserByEmail(email: String): User?
-    suspend fun insertUser(id: String, email: String, pass: String, username: String)
-    suspend fun setLoginState(userId: String?, isLoggedIn: Boolean)
+    // journal
+    fun getAllJournalEntries(): Flow<List<Journal_entry>>
+    suspend fun getJournalEntryById(id: Long): Journal_entry?
+    suspend fun insertJournalEntry(type: String, createdAt: Long, rating: Long, text: String)
+    suspend fun updateJournalEntry(id: Long, rating: Long, text: String)
+    suspend fun deleteJournalEntryById(id: Long)
+
+    // sleep
+    fun getCompletedSleepSessions(): Flow<List<SelectCompleted>>
+    fun getActiveSleepSession(): Flow<Sleep_session?>
+    suspend fun insertSleepSession(startedAt: Long, alarmAt: Long?)
+    suspend fun endSleepSession(id: Long, endedAt: Long)
+    suspend fun rateSleepSession(id: Long, quality: Long)
+    suspend fun deleteSleepSessionById(id: Long)
+
+    // meditation
+    fun getAllMeditationSessions(): Flow<List<Meditation_session>>
+    suspend fun insertMeditationSession(mood: String, completedAt: Long, durationMs: Long)
 }
 
 
@@ -52,34 +69,58 @@ internal class LocalDataSourceImpl(private val database: Database) : LocalDataSo
         withContext(Dispatchers.IO) { database.queries.deleteSound(soundId) }
     }
 
-    override fun getLoggedInUser(): Flow<User?> {
-        return database.userQueries.getLoggedInUser()
-            .asFlow()
-            .mapToOneOrNull(Dispatchers.IO)
+    // --- journal ---
+
+    override fun getAllJournalEntries(): Flow<List<Journal_entry>> =
+        database.journalQueries.selectAll().asFlow().mapToList(Dispatchers.IO)
+
+    override suspend fun getJournalEntryById(id: Long): Journal_entry? =
+        withContext(Dispatchers.IO) { database.journalQueries.selectById(id).executeAsOneOrNull() }
+
+    override suspend fun insertJournalEntry(type: String, createdAt: Long, rating: Long, text: String) {
+        withContext(Dispatchers.IO) { database.journalQueries.insertEntry(type, createdAt, rating, text) }
     }
 
-    override suspend fun getUserByEmail(email: String): User? {
-        return withContext(Dispatchers.IO) {
-            database.userQueries.getUserByEmail(email).executeAsOneOrNull()
-        }
+    override suspend fun updateJournalEntry(id: Long, rating: Long, text: String) {
+        withContext(Dispatchers.IO) { database.journalQueries.updateEntry(rating, text, id) }
     }
 
-    override suspend fun insertUser(id: String, email: String, pass: String, username: String) {
+    override suspend fun deleteJournalEntryById(id: Long) {
+        withContext(Dispatchers.IO) { database.journalQueries.deleteEntry(id) }
+    }
+
+    // --- sleep ---
+
+    override fun getCompletedSleepSessions(): Flow<List<SelectCompleted>> =
+        database.sleepQueries.selectCompleted().asFlow().mapToList(Dispatchers.IO)
+
+    override fun getActiveSleepSession(): Flow<Sleep_session?> =
+        database.sleepQueries.selectActive().asFlow().mapToOneOrNull(Dispatchers.IO)
+
+    override suspend fun insertSleepSession(startedAt: Long, alarmAt: Long?) {
+        withContext(Dispatchers.IO) { database.sleepQueries.insertSession(startedAt, alarmAt) }
+    }
+
+    override suspend fun endSleepSession(id: Long, endedAt: Long) {
+        withContext(Dispatchers.IO) { database.sleepQueries.endSession(endedAt, id) }
+    }
+
+    override suspend fun rateSleepSession(id: Long, quality: Long) {
+        withContext(Dispatchers.IO) { database.sleepQueries.rateSession(quality, id) }
+    }
+
+    override suspend fun deleteSleepSessionById(id: Long) {
+        withContext(Dispatchers.IO) { database.sleepQueries.deleteSession(id) }
+    }
+
+    // --- meditation ---
+
+    override fun getAllMeditationSessions(): Flow<List<Meditation_session>> =
+        database.meditationQueries.selectAll().asFlow().mapToList(Dispatchers.IO)
+
+    override suspend fun insertMeditationSession(mood: String, completedAt: Long, durationMs: Long) {
         withContext(Dispatchers.IO) {
-            // New users are logged in by default
-            database.userQueries.insertUser(id, email, pass, username, 1)
-        }
-    }
-
-    override suspend fun setLoginState(userId: String?, isLoggedIn: Boolean) {
-        withContext(Dispatchers.IO) {
-            if (isLoggedIn && userId != null) {
-                // Logout everyone else first to ensure only one active session
-                database.userQueries.logoutAll()
-                database.userQueries.loginUser(userId)
-            } else {
-                database.userQueries.logoutAll()
-            }
+            database.meditationQueries.insertSession(mood, completedAt, durationMs)
         }
     }
 

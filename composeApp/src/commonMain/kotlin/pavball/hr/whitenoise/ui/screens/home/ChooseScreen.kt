@@ -1,7 +1,21 @@
 package pavball.hr.whitenoise.ui.screens.home
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Text
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.font.FontFamily
+import androidx.compose.ui.unit.sp
+import pavball.hr.whitenoise.ui.components.utils.formatTime
+import pavball.hr.whitenoise.ui.theme.Mint
+import pavball.hr.whitenoise.ui.viewmodels.MainScreenViewModel
+import pavball.hr.whitenoise.ui.viewmodels.MainScreenViewState
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -21,6 +35,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
+import pavball.hr.whitenoise.domain.model.JournalType
 import pavball.hr.whitenoise.ui.components.button.DozzzeButton
 import pavball.hr.whitenoise.ui.components.utils.SpacerHelper
 import pavball.hr.whitenoise.ui.screens.main.Screens
@@ -38,8 +53,12 @@ import whitenoise.composeapp.generated.resources.white_noise
 @Composable
 internal fun HomeScreen(
     modifier: Modifier = Modifier,
-    navController: NavController
+    navController: NavController,
+    playerViewModel: MainScreenViewModel
 ) {
+
+    val playerState by playerViewModel.viewState<MainScreenViewState>()
+        .collectAsState(initial = MainScreenViewState())
 
     val quickSandFont = getCustomQuicksandFontFamily()
 
@@ -72,7 +91,7 @@ internal fun HomeScreen(
             SpacerHelper(65.dp)
 
             DozzzeButton(
-                onClicked = { navController.navigate(Screens.Dreams.route) },
+                onClicked = { navController.navigate(Screens.JournalEditor.route(JournalType.DREAM)) },
                 buttonText = stringResource(Res.string.dreams).toUpperCase(Locale.current),
                 buttonWidth = 226.dp,
                 buttonTextStyle = MaterialTheme.typography.bodyMedium,
@@ -128,7 +147,42 @@ internal fun HomeScreen(
                 buttonTextWeight = FontWeight.Bold,
                 shape = RoundedCornerShape(16.dp)
             )
+
+            if (playerState.isPlaying) {
+                SpacerHelper(32.dp)
+                NowPlayingPill(
+                    state = playerState,
+                    font = quickSandFont,
+                    onClick = { navController.navigate(Screens.WhiteNoise.route) }
+                )
+            }
         }
     }
 
+}
+
+/** Shows what is playing (and the sleep timer) and jumps to the player. */
+@Composable
+private fun NowPlayingPill(
+    state: MainScreenViewState,
+    font: FontFamily,
+    onClick: () -> Unit
+) {
+    val remaining = state.remainingTime
+    Text(
+        text = buildString {
+            append("♪  ")
+            append(state.selectedSoundLabel.orEmpty())
+            if (remaining != null) append("  ·  ${formatTime(remaining)}")
+        },
+        fontFamily = font,
+        fontWeight = FontWeight.SemiBold,
+        fontSize = 16.sp,
+        color = Mint,
+        modifier = Modifier
+            .border(BorderStroke(1.dp, Mint), RoundedCornerShape(20.dp))
+            .clip(RoundedCornerShape(20.dp))
+            .clickable { onClick() }
+            .padding(horizontal = 20.dp, vertical = 10.dp)
+    )
 }

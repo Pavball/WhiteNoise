@@ -50,6 +50,6 @@ fun DozzzeButton(
             color = textColor
         )
 
-        content
+        content()
     }
 }

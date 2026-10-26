@@ -3,45 +3,38 @@ package pavball.hr.whitenoise.ui.screens.main
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.Scaffold
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import org.koin.compose.viewmodel.koinViewModel
+import androidx.navigation.navArgument
+import pavball.hr.whitenoise.domain.model.JournalType
 import pavball.hr.whitenoise.ui.components.appbar.BottomNavigationBar
-import pavball.hr.whitenoise.ui.screens.auth.ForgotPasswordScreen
-import pavball.hr.whitenoise.ui.screens.auth.LoginScreen
-import pavball.hr.whitenoise.ui.screens.auth.RegisterScreen
-import pavball.hr.whitenoise.ui.screens.home.HomeScreen
 import pavball.hr.whitenoise.ui.screens.dream.DreamScreen
+import pavball.hr.whitenoise.ui.screens.home.HomeScreen
 import pavball.hr.whitenoise.ui.screens.meditation.MeditationScreen
 import pavball.hr.whitenoise.ui.screens.notes.NotesScreen
-import pavball.hr.whitenoise.ui.screens.profile.ManageProfileScreen
-import pavball.hr.whitenoise.ui.screens.profile.NotificationsScreen
-import pavball.hr.whitenoise.ui.screens.profile.ProfileScreen
-import pavball.hr.whitenoise.ui.screens.profile.SecurityScreen
 import pavball.hr.whitenoise.ui.screens.settings.SettingsScreen
 import pavball.hr.whitenoise.ui.screens.sleep.SleepScreen
 import pavball.hr.whitenoise.ui.screens.sound.add.AddSoundScreen
-import pavball.hr.whitenoise.ui.screens.sound.manage.ManageCustomSoundsScreen
 import pavball.hr.whitenoise.ui.screens.sound.select.SelectSoundScreen
 import pavball.hr.whitenoise.ui.screens.tracking.TrackingScreen
 import pavball.hr.whitenoise.ui.screens.whitenoise.WhiteNoiseScreen
-import pavball.hr.whitenoise.ui.screens.whitenoise.WhiteNoiseScreen2
 import pavball.hr.whitenoise.ui.viewmodels.MainScreenViewModel
-import pavball.hr.whitenoise.ui.viewmodels.MainScreenViewState
 
+/**
+ * [viewModel] is the activity-scoped instance from [App]; it is passed down
+ * instead of resolved per destination so every screen shares the same
+ * playback connection and state.
+ */
 @Composable
-fun MainScreen() {
+internal fun MainScreen(viewModel: MainScreenViewModel) {
     val navController = rememberNavController()
     Scaffold(
         topBar = { },
         bottomBar = { BottomNavigationBar(navController = navController) }
     ) { paddingValues ->
-        val viewModel = koinViewModel<MainScreenViewModel>()
-        val state by viewModel.viewState<MainScreenViewState>().collectAsState(initial = MainScreenViewState())
 
         NavHost(
             navController = navController,
@@ -50,28 +43,20 @@ fun MainScreen() {
         ) {
 
             composable(Screens.Home.route) {
-                HomeScreen(navController = navController)
+                HomeScreen(navController = navController, playerViewModel = viewModel)
             }
 
             composable(Screens.Options.route) {
-                SettingsScreen(navController = navController)
+                SettingsScreen(
+                    viewModel = viewModel,
+                    onOpenMySounds = { navController.navigate(Screens.AddSound.route) }
+                )
             }
 
             // WHITE NOISE PART
 
             composable(Screens.WhiteNoise.route) {
-                WhiteNoiseScreen2(navController = navController, viewModel = viewModel)
-            }
-
-            composable(Screens.ManageCustomSounds.route) {
-                ManageCustomSoundsScreen(
-                    customSounds = state.customSounds,
-                    onRename = { sound, newName -> viewModel.renameCustomSound(sound.id, newName) },
-                    onDelete = { sound -> viewModel.removeUserSound(sound.id) },
-                    onColorChange = { cs, colorId ->
-                        viewModel.updateCustomSoundColor(id = cs.id, colorId = colorId)
-                    },
-                )
+                WhiteNoiseScreen(navController = navController, viewModel = viewModel)
             }
 
             composable(Screens.AddSound.route) {
@@ -79,13 +64,42 @@ fun MainScreen() {
             }
 
             composable(Screens.SelectSound.route) {
-                SelectSoundScreen()
+                SelectSoundScreen(navController = navController, viewModel = viewModel)
             }
 
             // WHITE NOISE PART END
 
-            composable(Screens.Dreams.route) {
-                DreamScreen()
+            composable(
+                route = Screens.JournalEditor.route,
+                arguments = listOf(
+                    navArgument(Screens.JournalEditor.ARG_TYPE) { type = NavType.StringType },
+                    navArgument(Screens.JournalEditor.ARG_ID) {
+                        type = NavType.LongType
+                        defaultValue = Screens.JournalEditor.NO_ID
+                    }
+                )
+            ) { entry ->
+                val args = entry.savedStateHandle
+                val type = JournalType.entries.firstOrNull {
+                    it.name == args.get<String>(Screens.JournalEditor.ARG_TYPE)
+                } ?: JournalType.DREAM
+                val id = args.get<Long>(Screens.JournalEditor.ARG_ID)
+                    ?.takeIf { it != Screens.JournalEditor.NO_ID }
+
+                DreamScreen(
+                    type = type,
+                    entryId = id,
+                    onSaved = {
+                        // A dream written from Home lands in Notes; otherwise go back.
+                        if (navController.previousBackStackEntry?.destination?.route == Screens.Home.route) {
+                            navController.navigate(Screens.Notes.route) {
+                                popUpTo(Screens.JournalEditor.route) { inclusive = true }
+                            }
+                        } else {
+                            navController.popBackStack()
+                        }
+                    }
+                )
             }
 
             composable(Screens.Meditations.route) {
@@ -93,46 +107,23 @@ fun MainScreen() {
             }
 
             composable(Screens.Tracking.route) {
-                TrackingScreen()
+                TrackingScreen(
+                    onWriteNote = { navController.navigate(Screens.JournalEditor.route(JournalType.NOTE)) }
+                )
             }
 
             composable(Screens.Sleep.route) {
-                SleepScreen()
+                SleepScreen(playerViewModel = viewModel)
             }
 
             composable(Screens.Notes.route) {
-                NotesScreen()
+                NotesScreen(
+                    onNewEntry = { type -> navController.navigate(Screens.JournalEditor.route(type)) },
+                    onEditEntry = { entry ->
+                        navController.navigate(Screens.JournalEditor.route(entry.type, entry.id))
+                    }
+                )
             }
-
-            composable(Screens.Profile.route) {
-                ProfileScreen(navController = navController)
-            }
-
-            composable(Screens.ManageProfile.route) {
-                ManageProfileScreen(navController = navController)
-            }
-
-            composable(Screens.Security.route) {
-                SecurityScreen(navController = navController)
-            }
-
-            composable(Screens.Notifications.route) {
-                NotificationsScreen()
-            }
-            composable(Screens.Register.route) {
-                RegisterScreen(navController = navController)
-            }
-
-            composable(Screens.Login.route) {
-                LoginScreen(navController = navController)
-            }
-
-            composable(Screens.ForgotPassword.route) {
-                ForgotPasswordScreen(navController = navController)
-            }
-
-
-
         }
     }
 }

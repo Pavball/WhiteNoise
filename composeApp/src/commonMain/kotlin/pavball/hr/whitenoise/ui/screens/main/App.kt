@@ -47,7 +47,7 @@ fun App() {
                     }
                 )
             } else {
-                MainScreen()
+                MainScreen(viewModel = viewModel)
             }
         }
     }

@@ -1,14 +1,13 @@
 package pavball.hr.whitenoise.ui.viewmodels
 
 import androidx.lifecycle.ViewModel
-import io.ktor.utils.io.core.Closeable
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.BufferOverflow
 import kotlinx.coroutines.flow.*
 
 internal abstract class BaseViewModel<T>(
     initialState: T
-) : ViewModel(), Closeable {
+) : ViewModel(), AutoCloseable {
 
     internal val viewModelScope = CoroutineScope(
         Dispatchers.Main.immediate +
@@ -60,5 +59,12 @@ internal abstract class BaseViewModel<T>(
 
     override fun close() {
         viewModelScope.cancel("Closing ViewModel")
+    }
+
+    // The framework only calls onCleared(), never close(), so route it here
+    // or the scope (and anything subclasses release in close) would leak.
+    override fun onCleared() {
+        close()
+        super.onCleared()
     }
 }

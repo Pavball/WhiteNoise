@@ -3,11 +3,12 @@ package pavball.hr.whitenoise.ui.screens.main
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.graphics.painter.Painter
 import org.jetbrains.compose.resources.painterResource
+import pavball.hr.whitenoise.domain.model.JournalType
 import whitenoise.composeapp.generated.resources.Res
+import whitenoise.composeapp.generated.resources.ic_add
 import whitenoise.composeapp.generated.resources.ic_edit
 import whitenoise.composeapp.generated.resources.ic_home
 import whitenoise.composeapp.generated.resources.ic_notes
-import whitenoise.composeapp.generated.resources.ic_profile
 import whitenoise.composeapp.generated.resources.ic_settings
 
 sealed class Screens(val route: String, val title: String, val icon: @Composable () -> Painter) {
@@ -25,18 +26,18 @@ sealed class Screens(val route: String, val title: String, val icon: @Composable
             icon = { painterResource(Res.drawable.ic_home) }
         )
 
-    data object ManageCustomSounds :
-        Screens(
-            route = "manage_sounds",
-            title = "Custom Sounds",
-            icon = { painterResource(Res.drawable.ic_edit) }
-        )
-
     data object SelectSound :
         Screens(
             route = "select_sounds",
             title = "Select Sounds",
             icon = { painterResource(Res.drawable.ic_edit) }
+        )
+
+    data object AddSound :
+        Screens(
+            route = "add_sound",
+            title = "Add Sound",
+            icon = { painterResource(Res.drawable.ic_add) }
         )
 
     data object Options :
@@ -46,12 +47,20 @@ sealed class Screens(val route: String, val title: String, val icon: @Composable
             icon = { painterResource(Res.drawable.ic_settings) }
         )
 
-    data object Dreams :
+    /** Writes a new dream / sleep note, or edits one when an id is given. */
+    data object JournalEditor :
         Screens(
-            route = "dreams",
-            title = "Dreams",
-            icon = { painterResource(Res.drawable.ic_settings) }
-        )
+            route = "journal/{type}?id={id}",
+            title = "Journal",
+            icon = { painterResource(Res.drawable.ic_edit) }
+        ) {
+        const val ARG_TYPE = "type"
+        const val ARG_ID = "id"
+        const val NO_ID = -1L
+
+        fun route(type: JournalType, id: Long? = null): String =
+            "journal/${type.name}" + (id?.let { "?id=$it" } ?: "")
+    }
 
     data object Meditations :
         Screens(
@@ -74,66 +83,10 @@ sealed class Screens(val route: String, val title: String, val icon: @Composable
             icon = { painterResource(Res.drawable.ic_settings) }
         )
 
-    data object AddSound :
-        Screens(
-            route = "add_sound",
-            title = "Add Sound",
-            icon = { painterResource(Res.drawable.ic_settings) }
-        )
-
-    data object Profile :
-        Screens(
-            route = "profile",
-            title = "Profile",
-            icon = { painterResource(Res.drawable.ic_profile) }
-        )
-
-    data object ManageProfile :
-        Screens(
-            route = "manage_profile",
-            title = "Manage profile",
-            icon = { painterResource(Res.drawable.ic_notes) }
-        )
-
-    data object Security :
-        Screens(
-            route = "security",
-            title = "Security",
-            icon = { painterResource(Res.drawable.ic_notes) }
-        )
-
-    data object Notifications :
-        Screens(
-            route = "notifications",
-            title = "Notifications",
-            icon = { painterResource(Res.drawable.ic_notes) }
-        )
-
     data object Notes :
         Screens(
             route = "notes",
             title = "Notes",
-            icon = { painterResource(Res.drawable.ic_notes) }
-        )
-
-    data object Register :
-        Screens(
-            route = "register",
-            title = "Register",
-            icon = { painterResource(Res.drawable.ic_notes) }
-        )
-
-    data object Login :
-        Screens(
-            route = "login",
-            title = "Login",
-            icon = { painterResource(Res.drawable.ic_notes) }
-        )
-
-    data object ForgotPassword :
-        Screens(
-            route = "forgot_password",
-            title = "Forgot Password",
             icon = { painterResource(Res.drawable.ic_notes) }
         )
 

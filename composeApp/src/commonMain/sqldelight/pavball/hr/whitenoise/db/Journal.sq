@@ -1,0 +1,26 @@
+-- Dream journal entries and free-form sleep notes, shown in Notes.
+CREATE TABLE journal_entry(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    type TEXT NOT NULL,              -- 'DREAM' or 'NOTE'
+    created_at INTEGER NOT NULL,     -- epoch millis
+    rating INTEGER NOT NULL DEFAULT 0, -- 0..5 stars
+    text TEXT NOT NULL
+);
+
+selectAll:
+SELECT * FROM journal_entry ORDER BY created_at DESC;
+
+selectById:
+SELECT * FROM journal_entry WHERE id = ?;
+
+selectLatestOfType:
+SELECT * FROM journal_entry WHERE type = ? ORDER BY created_at DESC LIMIT 1;
+
+insertEntry:
+INSERT INTO journal_entry(type, created_at, rating, text) VALUES (?, ?, ?, ?);
+
+updateEntry:
+UPDATE journal_entry SET rating = ?, text = ? WHERE id = ?;
+
+deleteEntry:
+DELETE FROM journal_entry WHERE id = ?;

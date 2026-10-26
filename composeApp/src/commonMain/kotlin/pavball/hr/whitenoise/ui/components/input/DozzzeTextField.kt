@@ -8,10 +8,6 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.TextStyle
@@ -22,19 +18,20 @@ import androidx.compose.ui.unit.sp
 
 @Composable
 fun DreamJournalInput(
-    customFont: FontFamily
+    value: String,
+    onValueChange: (String) -> Unit,
+    placeholder: String,
+    customFont: FontFamily,
+    modifier: Modifier = Modifier
 ) {
-    // State to hold the user's input
-    var text by remember { mutableStateOf("") }
-
     TextField(
-        value = text,
-        onValueChange = { text = it },
+        value = value,
+        onValueChange = onValueChange,
 
         // 1. Placeholder Styling
         placeholder = {
             Text(
-                text = "Dream of the day...",
+                text = placeholder,
                 style = TextStyle(
                     fontFamily = customFont,
                     fontWeight = FontWeight.Medium,
@@ -57,8 +54,7 @@ fun DreamJournalInput(
 
         // 4. Color Overrides to remove Material defaults
         colors = TextFieldDefaults.colors(
-            // Background colors (Unfocused & Focused)
-            // Using a slightly transparent white to match the "glassy" look if desired
+            // Using a slightly transparent white to match the "glassy" look
             focusedContainerColor = Color.White.copy(alpha = 0.9f),
             unfocusedContainerColor = Color.White.copy(alpha = 0.9f),
 
@@ -72,9 +68,9 @@ fun DreamJournalInput(
         ),
 
         // 5. Layout Modifier
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
-            .padding(start = 100.dp, end = 100.dp)
+            .padding(horizontal = 32.dp)
             .height(250.dp)
     )
 }

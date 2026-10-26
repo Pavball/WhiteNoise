@@ -61,8 +61,8 @@ fun SplashScreen(
             animationSpec = tween(durationMillis = 800)
         )
 
-        // 2. Wait for a moment (2 seconds total splash time)
-        delay(1500)
+        // 2. Hold briefly so the logo registers without slowing every launch
+        delay(600)
 
         // 3. Navigate away
         onSplashFinished()

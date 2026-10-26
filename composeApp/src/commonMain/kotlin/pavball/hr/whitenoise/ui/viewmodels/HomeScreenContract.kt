@@ -14,21 +14,31 @@ data class MainScreenViewState(
 
     val isPlaying: Boolean = false,
     val isLoading: Boolean = false,
-    val isCleared: Boolean = false,
-    val currentSound: String? = null,
+    val playbackError: Boolean = false,
 
+    // --- Sleep timer (null when no timer is active) ---
     val remainingTime: Long? = null,
     val totalTime: Long? = null,
+    val isTimerRunning: Boolean = false,
     val fadeStarted: Boolean = false,
-    val timerFinished: Boolean = false,
-
 
     // --- Persistent user settings ---
     val fadeEnabled: Boolean = true,
     val fadeDuration: Int = 30,  // seconds
-    val timerSelectedMinutes: Int = 0,
+    val timerSelectedMinutes: Int = 0, // 0 = no timer
     val themeMode: String = ThemeMode.SYSTEM.name // "light", "dark", "system"
 ) {
+    /** Every playable sound id in playback order: built-in first, then the user's own. */
+    val playlistIds: List<String>
+        get() = sounds.map { it.second } + customSounds.map { it.id }
+
+    val selectedCustomSound: CustomSound?
+        get() = customSounds.firstOrNull { it.id == selectedSoundKey }
+
+    val selectedSoundLabel: String?
+        get() = sounds.firstOrNull { it.second == selectedSoundKey }?.first
+            ?: selectedCustomSound?.displayName
+
     companion object {
         val defaultSounds = listOf(
             "Rain" to "rain",
@@ -39,7 +49,8 @@ data class MainScreenViewState(
 
         val defaultCustomSounds = emptyList<CustomSound>()
 
-        val defaultTimerOptions = listOf(5, 10, 15, 20, 25, 30)
+        // 0 means "no timer, play until stopped"
+        val defaultTimerOptions = listOf(0, 5, 10, 15, 30, 45, 60, 90)
 
         val defaultFadeOutOptions = listOf(5, 10, 15, 20, 25, 30)
 
@@ -55,29 +66,27 @@ data class MainScreenViewState(
 internal abstract class MainScreenViewModel : BaseViewModel<MainScreenViewState>(MainScreenViewState()) {
     abstract val pendingRename: StateFlow<CustomSound?> // used by UI to open rename dialog immediately
 
+    // playback
     abstract fun playSound(soundId: String)
-    abstract fun pauseSound()
-    abstract fun stopSound()
+    abstract fun togglePlayPause()
+    abstract fun skipToNext()
+    abstract fun skipToPrevious()
 
-    abstract fun startTimer(minutes: Int, fadeOutEnabled: Boolean)
-    abstract fun pauseTimer()
-    abstract fun resumeTimer(onFadeStart: () -> Unit, onTimerFinished: () -> Unit)
+    // sleep timer
+    abstract fun updateSelectedTimer(minutes: Int)
+    abstract fun extendTimer(minutes: Int)
     abstract fun cancelTimer()
-    abstract fun updateSelectedSoundKey(selectedSoundKey: String)
+
+    // settings
     abstract fun saveThemeModeToUserPrefs(themeMode: String)
     abstract fun saveFadeOutTimeToUserPrefs(fadeTime: Int)
-    abstract fun updateSelectedTimer(minutes: Int)
+    abstract fun updateFadeEnabled(enabled: Boolean)
 
     // custom sound management
-    abstract fun addUserSound(displayName: String, uri: String, colorId: String)
+    abstract fun addUserSound(displayName: String, uri: String)
     abstract fun renameCustomSound(id: String, newName: String)
     abstract fun removeUserSound(id: String)
     abstract fun clearPendingRename()
-    abstract fun updateFadeDuration(newValue: Int)
-    abstract fun updateFadeEnabled(enabled: Boolean)
     abstract fun updateCustomSoundColor(id: String, colorId: String)
-
-    open val currentSoundColorId: String?
-        get() = null
 }
 

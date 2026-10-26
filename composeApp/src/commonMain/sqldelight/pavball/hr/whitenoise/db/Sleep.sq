@@ -1,0 +1,26 @@
+-- One row per night tracked from the Sleep screen. ended_at is NULL while sleeping.
+CREATE TABLE sleep_session(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    started_at INTEGER NOT NULL,     -- epoch millis
+    ended_at INTEGER,
+    alarm_at INTEGER,                -- planned wake-up, epoch millis
+    quality INTEGER                  -- 1..5, asked on wake-up
+);
+
+selectCompleted:
+SELECT * FROM sleep_session WHERE ended_at IS NOT NULL ORDER BY started_at DESC;
+
+selectActive:
+SELECT * FROM sleep_session WHERE ended_at IS NULL ORDER BY started_at DESC LIMIT 1;
+
+insertSession:
+INSERT INTO sleep_session(started_at, alarm_at) VALUES (?, ?);
+
+endSession:
+UPDATE sleep_session SET ended_at = ? WHERE id = ?;
+
+rateSession:
+UPDATE sleep_session SET quality = ? WHERE id = ?;
+
+deleteSession:
+DELETE FROM sleep_session WHERE id = ?;

@@ -9,5 +9,9 @@ internal class Database(databaseDriverFactory: DriverFactory) {
 
     val queries by lazy { database.customSoundQueries }
 
-    val userQueries by lazy { database.userQueries }
+    val journalQueries by lazy { database.journalQueries }
+
+    val sleepQueries by lazy { database.sleepQueries }
+
+    val meditationQueries by lazy { database.meditationQueries }
 }

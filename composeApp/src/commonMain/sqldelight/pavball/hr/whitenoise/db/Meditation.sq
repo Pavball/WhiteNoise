@@ -1,0 +1,13 @@
+-- Completed meditations from the Meditations screen.
+CREATE TABLE meditation_session(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    mood TEXT NOT NULL,
+    completed_at INTEGER NOT NULL,   -- epoch millis
+    duration_ms INTEGER NOT NULL
+);
+
+selectAll:
+SELECT * FROM meditation_session ORDER BY completed_at DESC;
+
+insertSession:
+INSERT INTO meditation_session(mood, completed_at, duration_ms) VALUES (?, ?, ?);
