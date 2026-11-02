@@ -28,6 +28,7 @@ lottieCompose = "6.0.1"
 material3Android = "1.4.0"
 media3Exoplayer = "1.8.0"
 navigationCompose = "2.9.5"
+navigationComposeMultiplatform = "2.9.1"
 runtimeSaveableAndroid = "1.9.4"
 uiAndroid = "1.9.4"
 kmpDateTimePicker = "1.1.1"
@@ -56,6 +57,7 @@ compottie = { module = "io.github.alexzhirkevich:compottie", version.ref = "comp
 compottie-network = { module = "io.github.alexzhirkevich:compottie-network", version.ref = "compottie" }
 compottie-dot = { module = "io.github.alexzhirkevich:compottie-dot", version.ref = "compottie" }
 navigation-compose = { module = "androidx.navigation:navigation-compose", version.ref = "navigationCompose" }
+navigation-compose-multiplatform = { module = "org.jetbrains.androidx.navigation:navigation-compose", version.ref = "navigationComposeMultiplatform" }
 androidx-activity-compose = { module = "androidx.activity:activity-compose", version.ref = "androidx-activityCompose" }
 androidx-compose-ui-tooling = { module = "androidx.compose.ui:ui-tooling", version.ref = "androidx-ui-tooling" }
 androidx-compose-ui-tooling-preview = { module = "androidx.compose.ui:ui-tooling-preview", version.ref = "androidx-ui-tooling" }

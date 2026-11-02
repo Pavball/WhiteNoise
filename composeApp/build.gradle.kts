@@ -68,7 +68,7 @@ kotlin {
             implementation(libs.sqldelight.native)
         }
         commonMain.dependencies {
-            implementation(libs.navigation.compose)
+            implementation(libs.navigation.compose.multiplatform)
             implementation(libs.androidx.lifecycle.runtime.compose)
             implementation(compose.runtime)
             implementation(compose.foundation)
