@@ -173,6 +173,7 @@ private fun NowPlayingPill(
         text = buildString {
             append("♪  ")
             append(state.selectedSoundLabel.orEmpty())
+            if (state.activeLayers.isNotEmpty()) append(" + ${state.activeLayers.size}")
             if (remaining != null) append("  ·  ${formatTime(remaining)}")
         },
         fontFamily = font,

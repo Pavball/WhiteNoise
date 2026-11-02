@@ -14,4 +14,6 @@ internal class Database(databaseDriverFactory: DriverFactory) {
     val sleepQueries by lazy { database.sleepQueries }
 
     val meditationQueries by lazy { database.meditationQueries }
+
+    val soundMixQueries by lazy { database.soundMixQueries }
 }

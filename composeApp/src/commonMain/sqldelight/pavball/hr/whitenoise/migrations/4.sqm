@@ -1,0 +1,9 @@
+-- Saved sound mixes.
+CREATE TABLE sound_mix(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name TEXT NOT NULL,
+    lead_sound_id TEXT NOT NULL,
+    lead_volume REAL NOT NULL,       -- 0..1
+    layers TEXT NOT NULL,            -- "soundId=volume;…", see SoundMix.encodeLayers
+    created_at INTEGER NOT NULL      -- epoch millis
+);

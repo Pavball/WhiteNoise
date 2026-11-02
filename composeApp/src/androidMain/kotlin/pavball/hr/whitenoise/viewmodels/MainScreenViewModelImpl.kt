@@ -10,31 +10,39 @@ import androidx.media3.session.MediaController
 import androidx.media3.session.SessionToken
 import kotlinx.coroutines.Job
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.collectLatest
 import kotlinx.coroutines.isActive
 import pavball.hr.whitenoise.domain.model.CustomSound
+import pavball.hr.whitenoise.domain.model.SoundMix
 import pavball.hr.whitenoise.domain.usecase.DeleteCustomSoundUseCase
 import pavball.hr.whitenoise.domain.usecase.GetCustomSoundUseCase
 import pavball.hr.whitenoise.domain.usecase.InsertCustomSoundUseCase
 import pavball.hr.whitenoise.domain.usecase.UpdateCustomSoundColorUseCase
 import pavball.hr.whitenoise.domain.usecase.UpdateCustomSoundUseCase
+import pavball.hr.whitenoise.domain.usecase.mix.DeleteSoundMixUseCase
+import pavball.hr.whitenoise.domain.usecase.mix.GetSoundMixesUseCase
+import pavball.hr.whitenoise.domain.usecase.mix.SaveSoundMixUseCase
 import pavball.hr.whitenoise.playback.PlaybackContract
+import pavball.hr.whitenoise.playback.PlaybackContract.MixSnapshot
 import pavball.hr.whitenoise.playback.PlaybackContract.TimerSnapshot
 import pavball.hr.whitenoise.playback.PlaybackService
+import pavball.hr.whitenoise.playback.PlaybackSpectrum
 import pavball.hr.whitenoise.ui.components.SettingsDataStore
 import pavball.hr.whitenoise.ui.components.utils.CustomSoundPalette
 import pavball.hr.whitenoise.ui.viewmodels.MainScreenViewModel
+import pavball.hr.whitenoise.ui.viewmodels.MainScreenViewState
 import java.util.Locale
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 
 /**
- * Playback and the sleep timer live in [PlaybackService] so they survive the
- * UI being closed. This ViewModel talks to it through a [MediaController] and
- * mirrors its state into the view state.
+ * Playback, the mix and the sleep timer live in [PlaybackService] so they
+ * survive the UI being closed. This ViewModel talks to it through a
+ * [MediaController] and mirrors its state into the view state.
  */
 internal class MainScreenViewModelImpl(
     private val context: Context,
@@ -43,12 +51,18 @@ internal class MainScreenViewModelImpl(
     private val updateCustomSoundUseCase: UpdateCustomSoundUseCase,
     private val deleteCustomSoundUseCase: DeleteCustomSoundUseCase,
     private val insertCustomSoundUseCase: InsertCustomSoundUseCase,
-    private val updateCustomSoundColorUseCase: UpdateCustomSoundColorUseCase
+    private val updateCustomSoundColorUseCase: UpdateCustomSoundColorUseCase,
+    private val getSoundMixesUseCase: GetSoundMixesUseCase,
+    private val saveSoundMixUseCase: SaveSoundMixUseCase,
+    private val deleteSoundMixUseCase: DeleteSoundMixUseCase
 ) : MainScreenViewModel() {
 
     private val _pendingRename = MutableStateFlow<CustomSound?>(null)
     override val pendingRename: StateFlow<CustomSound?> =
         _pendingRename.asStateFlow()
+
+    // The service shares this process, so its audio analysis is read directly.
+    override val spectrum: Flow<FloatArray> = PlaybackSpectrum.levels()
 
     private var controller: MediaController? = null
     private val pendingControllerActions = mutableListOf<(MediaController) -> Unit>()
@@ -61,7 +75,7 @@ internal class MainScreenViewModelImpl(
     )
         .setListener(object : MediaController.Listener {
             override fun onExtrasChanged(controller: MediaController, extras: Bundle) {
-                applyTimerExtras(extras)
+                applyExtras(extras)
             }
         })
         .buildAsync()
@@ -85,7 +99,9 @@ internal class MainScreenViewModelImpl(
                         fadeEnabled = prefs.fadeEnabled,
                         fadeDuration = prefs.fadeDuration,
                         timerSelectedMinutes = prefs.timerMinutes,
-                        themeMode = prefs.themeMode
+                        themeMode = prefs.themeMode,
+                        onboardingSeen = prefs.onboardingSeen,
+                        whiteNoiseTipsSeen = prefs.whiteNoiseTipsSeen
                     )
                 }
             }
@@ -100,6 +116,11 @@ internal class MainScreenViewModelImpl(
                 }
             }
         }
+        runCommand {
+            getSoundMixesUseCase().collectLatest { mixes ->
+                updateState { copy(savedMixes = mixes) }
+            }
+        }
         controllerFuture.addListener(
             { onControllerReady() },
             ContextCompat.getMainExecutor(context)
@@ -111,7 +132,7 @@ internal class MainScreenViewModelImpl(
         val connected = runCatching { controllerFuture.get() }.getOrNull() ?: return
         controller = connected
         connected.addListener(playerListener)
-        applyTimerExtras(connected.sessionExtras)
+        applyExtras(connected.sessionExtras)
         syncPlaybackState()
         pendingControllerActions.forEach { it(connected) }
         pendingControllerActions.clear()
@@ -175,10 +196,7 @@ internal class MainScreenViewModelImpl(
             PlaybackContract.CMD_PLAY_SOUND,
             bundleOf(PlaybackContract.ARG_SOUND_ID to soundId)
         )
-        // Start the chosen sleep timer unless one is already counting down.
-        if (state.remainingTime == null && state.timerSelectedMinutes > 0) {
-            startTimer(state.timerSelectedMinutes)
-        }
+        startChosenTimer(state)
     }
 
     override fun togglePlayPause() {
@@ -220,6 +238,88 @@ internal class MainScreenViewModelImpl(
     }
 
     // --------------------------------------------------------------------
+    // ||                 MIXER SECTION                                  ||
+    // --------------------------------------------------------------------
+    // The state is updated right away so sliders follow the finger; the
+    // service echoes the same values back through its session extras.
+    override fun setLeadVolume(volume: Float) {
+        runCommand { updateState { copy(leadVolume = volume) } }
+        sendCommand(
+            PlaybackContract.CMD_SET_LEAD_VOLUME,
+            bundleOf(PlaybackContract.ARG_VOLUME to volume)
+        )
+    }
+
+    override fun setLayerVolume(soundId: String, volume: Float) {
+        val state = getCurrentState()
+        val isNew = soundId !in state.layers
+        if (volume > 0f && isNew && state.layers.size >= SoundMix.MAX_LAYERS) return
+        runCommand {
+            updateState { copy(layers = if (volume > 0f) layers + (soundId to volume) else layers - soundId) }
+        }
+        sendCommand(
+            PlaybackContract.CMD_SET_LAYER,
+            bundleOf(PlaybackContract.ARG_SOUND_ID to soundId, PlaybackContract.ARG_VOLUME to volume)
+        )
+    }
+
+    override fun clearLayers() {
+        runCommand { updateState { copy(layers = emptyMap()) } }
+        sendCommand(PlaybackContract.CMD_CLEAR_LAYERS)
+    }
+
+    override fun applyMix(mix: SoundMix) {
+        val state = getCurrentState()
+        val available = state.playlistIds.toSet()
+        val layers = mix.layers.filterKeys { it in available }
+        // A saved mix may reference a custom sound deleted since; promote its loudest layer.
+        val lead = mix.leadSoundId.takeIf { it in available }
+            ?: layers.maxByOrNull { it.value }?.key
+            ?: return
+        val leadVolume = if (lead == mix.leadSoundId) mix.leadVolume else layers.getValue(lead)
+        val onTop = layers - lead
+
+        runCommand {
+            updateState {
+                copy(selectedSoundKey = lead, leadVolume = leadVolume, layers = onTop, playbackError = false)
+            }
+        }
+        sendCommand(
+            PlaybackContract.CMD_PLAY_MIX,
+            Bundle().apply {
+                putString(PlaybackContract.ARG_SOUND_ID, lead)
+                putFloat(PlaybackContract.ARG_VOLUME, leadVolume)
+                putStringArray(PlaybackContract.ARG_LAYER_IDS, onTop.keys.toTypedArray())
+                putFloatArray(PlaybackContract.ARG_LAYER_VOLUMES, onTop.values.toFloatArray())
+            }
+        )
+        startChosenTimer(state)
+    }
+
+    @OptIn(ExperimentalTime::class)
+    override fun saveCurrentMix(name: String) {
+        val state = getCurrentState()
+        runCommand {
+            saveSoundMixUseCase(
+                name = name,
+                leadSoundId = state.selectedSoundKey,
+                leadVolume = state.leadVolume,
+                layers = state.activeLayers,
+                createdAt = Clock.System.now().toEpochMilliseconds()
+            )
+        }
+    }
+
+    override fun deleteMix(id: Long) {
+        runCommand { deleteSoundMixUseCase(id) }
+    }
+
+    private fun applyMixExtras(extras: Bundle) {
+        val mix = MixSnapshot.fromBundle(extras)
+        runCommand { updateState { copy(leadVolume = mix.leadVolume, layers = mix.layers) } }
+    }
+
+    // --------------------------------------------------------------------
     // ||                 TIMER SECTION                                  ||
     // --------------------------------------------------------------------
     override fun updateSelectedTimer(minutes: Int) {
@@ -244,6 +344,13 @@ internal class MainScreenViewModelImpl(
 
     override fun cancelTimer() {
         sendCommand(PlaybackContract.CMD_CANCEL_TIMER)
+    }
+
+    /** Starting playback starts the chosen sleep timer, unless one is already counting down. */
+    private fun startChosenTimer(stateBefore: MainScreenViewState) {
+        if (stateBefore.remainingTime == null && stateBefore.timerSelectedMinutes > 0) {
+            startTimer(stateBefore.timerSelectedMinutes)
+        }
     }
 
     private fun startTimer(minutes: Int) {
@@ -317,8 +424,38 @@ internal class MainScreenViewModelImpl(
     }
 
     // --------------------------------------------------------------------
+    // ||                 TUTORIAL SECTION                               ||
+    // --------------------------------------------------------------------
+    override fun completeOnboarding() {
+        runCommand {
+            updateState { copy(onboardingSeen = true) }
+            settings.saveOnboardingSeen(true)
+        }
+    }
+
+    override fun completeWhiteNoiseTips() {
+        runCommand {
+            updateState { copy(whiteNoiseTipsSeen = true) }
+            settings.saveWhiteNoiseTipsSeen(true)
+        }
+    }
+
+    override fun replayTutorials() {
+        runCommand {
+            updateState { copy(onboardingSeen = false, whiteNoiseTipsSeen = false) }
+            settings.saveOnboardingSeen(false)
+            settings.saveWhiteNoiseTipsSeen(false)
+        }
+    }
+
+    // --------------------------------------------------------------------
     // ||                 HELPER FUNCTIONS SECTION                       ||
     // --------------------------------------------------------------------
+    private fun applyExtras(extras: Bundle) {
+        applyTimerExtras(extras)
+        applyMixExtras(extras)
+    }
+
     private fun sendFadeSettings(enabled: Boolean, seconds: Int) {
         sendCommand(
             PlaybackContract.CMD_SET_FADE,

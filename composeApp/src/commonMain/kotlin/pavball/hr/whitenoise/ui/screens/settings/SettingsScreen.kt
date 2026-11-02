@@ -62,6 +62,8 @@ import whitenoise.composeapp.generated.resources.fade_out_time
 import whitenoise.composeapp.generated.resources.my_sounds
 import whitenoise.composeapp.generated.resources.sec
 import whitenoise.composeapp.generated.resources.settings
+import whitenoise.composeapp.generated.resources.show_tutorial
+import whitenoise.composeapp.generated.resources.show_tutorial_hint
 import whitenoise.composeapp.generated.resources.theme
 import whitenoise.composeapp.generated.resources.theme_dark
 import whitenoise.composeapp.generated.resources.theme_light
@@ -189,6 +191,15 @@ internal fun SettingsScreen(
                 font = quickSandFont,
                 onClick = { backgroundPlayback.openSettings() },
                 highlight = !isUnrestricted
+            )
+
+            // --- Tutorial ---
+            SettingsRow(
+                title = stringResource(Res.string.show_tutorial),
+                value = null,
+                description = stringResource(Res.string.show_tutorial_hint),
+                font = quickSandFont,
+                onClick = viewModel::replayTutorials
             )
 
             SpacerHelper(32.dp)

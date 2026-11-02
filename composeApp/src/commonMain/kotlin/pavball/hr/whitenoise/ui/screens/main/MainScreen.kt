@@ -18,6 +18,7 @@ import pavball.hr.whitenoise.ui.screens.notes.NotesScreen
 import pavball.hr.whitenoise.ui.screens.settings.SettingsScreen
 import pavball.hr.whitenoise.ui.screens.sleep.SleepScreen
 import pavball.hr.whitenoise.ui.screens.sound.add.AddSoundScreen
+import pavball.hr.whitenoise.ui.screens.sound.mixer.MixerScreen
 import pavball.hr.whitenoise.ui.screens.sound.select.SelectSoundScreen
 import pavball.hr.whitenoise.ui.screens.tracking.TrackingScreen
 import pavball.hr.whitenoise.ui.screens.whitenoise.WhiteNoiseScreen
@@ -65,6 +66,10 @@ internal fun MainScreen(viewModel: MainScreenViewModel) {
 
             composable(Screens.SelectSound.route) {
                 SelectSoundScreen(navController = navController, viewModel = viewModel)
+            }
+
+            composable(Screens.Mixer.route) {
+                MixerScreen(viewModel = viewModel)
             }
 
             // WHITE NOISE PART END

@@ -12,7 +12,6 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -31,6 +30,7 @@ import org.jetbrains.compose.resources.painterResource
 import org.jetbrains.compose.resources.stringResource
 import org.koin.compose.viewmodel.koinViewModel
 import pavball.hr.whitenoise.ui.components.button.DozzzeButton
+import pavball.hr.whitenoise.ui.components.dialog.DozzzeAlertDialog
 import pavball.hr.whitenoise.ui.components.effects.GlowingTimerCircle
 import pavball.hr.whitenoise.ui.components.input.RatingBar
 import pavball.hr.whitenoise.ui.components.input.WheelPicker
@@ -216,7 +216,7 @@ internal fun SleepScreen(
 
     // --- Morning check-in ---
     state.sessionToRate?.let { night ->
-        AlertDialog(
+        DozzzeAlertDialog(
             onDismissRequest = { viewModel.skipRating() },
             title = { Text(stringResource(Res.string.how_did_you_sleep), fontFamily = quickSandFont) },
             text = {

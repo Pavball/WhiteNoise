@@ -24,6 +24,12 @@ import pavball.hr.whitenoise.domain.usecase.meditation.GetMeditationSessions
 import pavball.hr.whitenoise.domain.usecase.meditation.GetMeditationSessionsUseCase
 import pavball.hr.whitenoise.domain.usecase.meditation.SaveMeditationSession
 import pavball.hr.whitenoise.domain.usecase.meditation.SaveMeditationSessionUseCase
+import pavball.hr.whitenoise.domain.usecase.mix.DeleteSoundMix
+import pavball.hr.whitenoise.domain.usecase.mix.DeleteSoundMixUseCase
+import pavball.hr.whitenoise.domain.usecase.mix.GetSoundMixes
+import pavball.hr.whitenoise.domain.usecase.mix.GetSoundMixesUseCase
+import pavball.hr.whitenoise.domain.usecase.mix.SaveSoundMix
+import pavball.hr.whitenoise.domain.usecase.mix.SaveSoundMixUseCase
 import pavball.hr.whitenoise.domain.usecase.sleep.DeleteSleepSession
 import pavball.hr.whitenoise.domain.usecase.sleep.DeleteSleepSessionUseCase
 import pavball.hr.whitenoise.domain.usecase.sleep.EndSleepSession
@@ -44,6 +50,8 @@ import pavball.hr.whitenoise.repositories.MeditationRepository
 import pavball.hr.whitenoise.repositories.MeditationRepositoryImpl
 import pavball.hr.whitenoise.repositories.SleepRepository
 import pavball.hr.whitenoise.repositories.SleepRepositoryImpl
+import pavball.hr.whitenoise.repositories.SoundMixRepository
+import pavball.hr.whitenoise.repositories.SoundMixRepositoryImpl
 import pavball.hr.whitenoise.source.local.Database
 import pavball.hr.whitenoise.source.local.LocalDataSource
 import pavball.hr.whitenoise.source.local.LocalDataSourceImpl
@@ -69,6 +77,7 @@ val storageModule = module {
     single<JournalRepository> { JournalRepositoryImpl(get()) }
     single<SleepRepository> { SleepRepositoryImpl(get()) }
     single<MeditationRepository> { MeditationRepositoryImpl(get()) }
+    single<SoundMixRepository> { SoundMixRepositoryImpl(get()) }
 
     // Use cases
     single<GetCustomSoundUseCase> { GetCustomSound(get()) }
@@ -91,6 +100,10 @@ val storageModule = module {
 
     single<GetMeditationSessionsUseCase> { GetMeditationSessions(get()) }
     single<SaveMeditationSessionUseCase> { SaveMeditationSession(get()) }
+
+    single<GetSoundMixesUseCase> { GetSoundMixes(get()) }
+    single<SaveSoundMixUseCase> { SaveSoundMix(get()) }
+    single<DeleteSoundMixUseCase> { DeleteSoundMix(get()) }
 
     // Screen-scoped view models (the main player view model is platform specific)
     viewModel<NotesViewModel> { NotesViewModelImpl(get(), get()) }

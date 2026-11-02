@@ -7,7 +7,8 @@ Guidance for working in this repository.
 **WhiteNoise** (in-app brand: **Dozzze**) — a Compose Multiplatform sleep/relaxation app targeting Android and iOS.
 Package / applicationId: `pavball.hr.whitenoise`. Single Gradle module: `:composeApp`.
 
-Features: white noise player (bundled + user-added custom sounds), sleep timer with fade-out, waveform visualizer,
+Features: white noise player (bundled, generated white/pink/brown noise, user-added custom sounds), sound mixer
+(layers + saved mixes), sleep timer with fade-out, audio-reactive waveform visualizer,
 background playback with a media notification (lock screen / headset controls), theme mode (light/dark/system),
 dream journal + sleep notes (Notes), bedtime with a Clock-app wake-up alarm (Sleep), sleep stats (Tracking),
 guided breathing (Meditations) and Settings. All data is local (SQLDelight).
@@ -95,6 +96,14 @@ Layering: **Screen → ViewModel → UseCase → Repository → LocalDataSource 
   `MainScreenViewModelImpl` talks to it through a `MediaController`: custom `SessionCommand`s from `PlaybackContract`
   for play/timer, while the service publishes timer state as session extras (`TimerSnapshot`).
   `DozzzePlayer` (a `ForwardingSimpleBasePlayer`) makes next/previous wrap and puts the timer in the notification.
+- **Mixer (Android)**: the selected sound plays on the session's ExoPlayer at `leadVolume`; up to
+  `SoundMix.MAX_LAYERS` other sounds play on extra ExoPlayers ("layers") that follow its play state and don't take
+  audio focus. The service owns the mix (`CMD_SET_LAYER`, `CMD_PLAY_MIX`, …), publishes it as session extras
+  (`MixSnapshot`) and persists it in DataStore. The sleep-timer fade scales every player via `fadeFactor` — never set
+  `exoPlayer.volume` directly, use `applyVolumes()`. Saved mixes live in the `sound_mix` table.
+- **Visualizer**: every player's audio sink has a `TeeAudioProcessor` feeding a `SpectrumAnalyzer` (FFT);
+  `PlaybackSpectrum` combines them and the VM exposes it as `spectrum` (no RECORD_AUDIO needed). The service and UI
+  share a process, so this bypasses the media session.
 - **Use cases**: interface `XxxUseCase` + implementation named without suffix (`InsertCustomSound`), invoked as functions.
 - **Repositories**: public interface + `internal class XxxRepositoryImpl`, returning `Flow` or `Result<T>`.
 - **DI registration**:
@@ -103,12 +112,18 @@ Layering: **Screen → ViewModel → UseCase → Repository → LocalDataSource 
   - Koin is started in `DozzzeApplication` with `sharedKoinModules + sharedAndroidKoinModules`.
 - **Navigation**: add a `data object` to the sealed `Screens` class (`ui/screens/main/Screens.kt`) and a matching
   `composable(...)` in the `NavHost` in `MainScreen.kt`. Start destination is `Screens.Home`.
-  `App()` shows `SplashScreen` first, then `MainScreen`.
+  `App()` shows `SplashScreen` first, then `OnboardingScreen` once (flag `onboardingSeen`), then `MainScreen`.
+- **First-run tips**: `SpotlightOverlay` (`ui/components/effects`) dims a screen and highlights elements marked with
+  `Modifier.spotlightTarget(state, key)`; White Noise uses it once (flag `whiteNoiseTipsSeen`). Both flags live in
+  `SettingsDataStore`; Settings › "Show tutorial again" resets them.
+- **Compose resource strings**: `\'` and `\"` are not unescaped (they show up literally); use ’ and “ ” instead.
 - **Resources**: use Compose Resources (`Res.drawable.*`, `Res.font.*`) from `whitenoise.composeapp.generated.resources`.
   Bundled audio is Android `R.raw.*`, mapped by key (`rain`, `ocean`, `forest`, `thunder`) in `PlaybackService`.
+  `white_noise` / `pink_noise` / `brown_noise` are generated on first start by `NoiseGenerator` into
+  `filesDir/noise/*.wav` (bump its `VERSION` to regenerate after changing the algorithm).
 - **Database changes**: edit the `.sq` files, then rebuild to regenerate code. Schema output goes to
   `src/commonMain/sqldelight/databases`. Changes to existing tables also need a new `migrations/N.sqm`
-  (schema version is currently 4).
+  (schema version is currently 5).
 - UI components use the `Dozzze` prefix (`DozzzeButton`, `DozzzeTextField`, `DozzzeTheme`).
 - Section banner comments (`// ||   SECTION   ||`) are used to organize large ViewModels; follow that style there.
 

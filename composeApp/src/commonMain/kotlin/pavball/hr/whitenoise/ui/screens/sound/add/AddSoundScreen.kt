@@ -22,7 +22,6 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.lazy.rememberLazyListState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -54,6 +53,7 @@ import pavball.hr.whitenoise.domain.model.CustomSound
 import pavball.hr.whitenoise.domain.model.rememberSoundPicker
 import pavball.hr.whitenoise.ui.components.button.DozzzeButton
 import pavball.hr.whitenoise.ui.components.dialog.AddCustomSoundDialog
+import pavball.hr.whitenoise.ui.components.dialog.DozzzeAlertDialog
 import pavball.hr.whitenoise.ui.components.effects.drawVerticalFadingEdges
 import pavball.hr.whitenoise.ui.components.utils.SpacerHelper
 import pavball.hr.whitenoise.ui.components.utils.resolveGradientColors
@@ -214,7 +214,7 @@ internal fun AddSoundScreen(modifier: Modifier = Modifier, viewModel: MainScreen
 
     // --- Delete confirmation ---
     deletingSound?.let { sound ->
-        AlertDialog(
+        DozzzeAlertDialog(
             onDismissRequest = { deletingSound = null },
             title = { Text(stringResource(Res.string.delete)) },
             text = { Text("${stringResource(Res.string.are_you_sure)} \"${sound.displayName}\"?") },
@@ -224,7 +224,7 @@ internal fun AddSoundScreen(modifier: Modifier = Modifier, viewModel: MainScreen
                         viewModel.removeUserSound(sound.id)
                         deletingSound = null
                     }
-                ) { Text(stringResource(Res.string.delete), color = Color.Red) }
+                ) { Text(stringResource(Res.string.delete), color = MaterialTheme.colorScheme.error) }
             },
             dismissButton = {
                 TextButton(onClick = { deletingSound = null }) {

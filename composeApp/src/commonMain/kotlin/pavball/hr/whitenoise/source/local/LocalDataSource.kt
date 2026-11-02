@@ -11,6 +11,7 @@ import pavball.hr.whitenoise.db.Journal_entry
 import pavball.hr.whitenoise.db.Meditation_session
 import pavball.hr.whitenoise.db.SelectCompleted
 import pavball.hr.whitenoise.db.Sleep_session
+import pavball.hr.whitenoise.db.Sound_mix
 
 internal interface LocalDataSource {
 
@@ -43,6 +44,11 @@ internal interface LocalDataSource {
     // meditation
     fun getAllMeditationSessions(): Flow<List<Meditation_session>>
     suspend fun insertMeditationSession(mood: String, completedAt: Long, durationMs: Long)
+
+    // sound mixes
+    fun getAllSoundMixes(): Flow<List<Sound_mix>>
+    suspend fun insertSoundMix(name: String, leadSoundId: String, leadVolume: Double, layers: String, createdAt: Long)
+    suspend fun deleteSoundMixById(id: Long)
 }
 
 
@@ -122,6 +128,27 @@ internal class LocalDataSourceImpl(private val database: Database) : LocalDataSo
         withContext(Dispatchers.IO) {
             database.meditationQueries.insertSession(mood, completedAt, durationMs)
         }
+    }
+
+    // --- sound mixes ---
+
+    override fun getAllSoundMixes(): Flow<List<Sound_mix>> =
+        database.soundMixQueries.selectAll().asFlow().mapToList(Dispatchers.IO)
+
+    override suspend fun insertSoundMix(
+        name: String,
+        leadSoundId: String,
+        leadVolume: Double,
+        layers: String,
+        createdAt: Long
+    ) {
+        withContext(Dispatchers.IO) {
+            database.soundMixQueries.insertMix(name, leadSoundId, leadVolume, layers, createdAt)
+        }
+    }
+
+    override suspend fun deleteSoundMixById(id: Long) {
+        withContext(Dispatchers.IO) { database.soundMixQueries.deleteMix(id) }
     }
 
 }

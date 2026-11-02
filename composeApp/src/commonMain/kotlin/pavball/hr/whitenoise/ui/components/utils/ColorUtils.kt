@@ -36,9 +36,16 @@ fun resolveGradientColors(
         "forest" -> listOf(Color(0xFF4CAF50), Color(0xFF81C784))
         "rain" -> listOf(Color(0xFF546E7A), Color(0xFF90A4AE))
         "thunder" -> listOf(Color(0xFF37474F), Color(0xFF78909C))
+        "white_noise" -> listOf(Color(0xFF78849E), Color(0xFFD5DBE8))
+        "pink_noise" -> listOf(Color(0xFFC2577F), Color(0xFFF2A7C3))
+        "brown_noise" -> listOf(Color(0xFF6D4C41), Color(0xFFBC8F76))
         else -> listOf(Color(0xFF3F51B5), Color(0xFF7986CB))
     }
 }
+
+/** The accent color of a sound: its custom color, or the brighter end of its gradient. */
+fun soundAccentColor(soundKey: String?, dbColorId: String?): Color =
+    resolveGradientColors(soundKey, dbColorId)[1]
 
 fun Color.Companion.fromHex(hex: String?): Color {
     if (hex.isNullOrBlank()) {

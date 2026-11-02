@@ -13,6 +13,7 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import org.koin.compose.viewmodel.koinViewModel
 import org.koin.core.annotation.KoinExperimentalAPI
+import pavball.hr.whitenoise.ui.screens.onboarding.OnboardingScreen
 import pavball.hr.whitenoise.ui.screens.splash.SplashScreen
 import pavball.hr.whitenoise.ui.theme.DozzzeTheme
 import pavball.hr.whitenoise.ui.viewmodels.MainScreenViewModel
@@ -40,14 +41,15 @@ fun App() {
             modifier = Modifier.fillMaxSize(),
             color = MaterialTheme.colorScheme.background
         ) {
-            if (showSplash) {
-                SplashScreen(
+            when {
+                showSplash -> SplashScreen(
                     onSplashFinished = {
                         showSplash = false
                     }
                 )
-            } else {
-                MainScreen(viewModel = viewModel)
+                // The settings have long loaded by the end of the splash, so this never flashes.
+                state.onboardingSeen == false -> OnboardingScreen(onFinished = viewModel::completeOnboarding)
+                else -> MainScreen(viewModel = viewModel)
             }
         }
     }

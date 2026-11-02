@@ -1,5 +1,6 @@
 package pavball.hr.whitenoise.ui.screens.sound.select
 
+import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
@@ -29,6 +30,9 @@ import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.geometry.CornerRadius
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.ui.geometry.Size
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
@@ -57,6 +61,7 @@ import whitenoise.composeapp.generated.resources.bg_moonlight
 import whitenoise.composeapp.generated.resources.city
 import whitenoise.composeapp.generated.resources.ic_add
 import whitenoise.composeapp.generated.resources.nature
+import whitenoise.composeapp.generated.resources.noise_colors
 import whitenoise.composeapp.generated.resources.ocean
 import whitenoise.composeapp.generated.resources.rain
 import whitenoise.composeapp.generated.resources.sounds
@@ -131,7 +136,10 @@ internal fun SelectSoundScreen(
                 verticalArrangement = Arrangement.spacedBy(24.dp), // More vertical space for text
                 modifier = Modifier.fillMaxSize()
             ) {
-                items(state.sounds, key = { it.second }) { (label, id) ->
+                val (noiseSounds, natureSounds) = state.sounds
+                    .partition { it.second in MainScreenViewState.noiseSoundKeys }
+
+                items(natureSounds, key = { it.second }) { (label, id) ->
                     SoundCard(
                         name = label,
                         isSelected = state.selectedSoundKey == id,
@@ -150,14 +158,22 @@ internal fun SelectSoundScreen(
                 }
 
                 item(span = { GridItemSpan(maxLineSpan) }) {
-                    Text(
-                        text = stringResource(Res.string.your_sounds),
+                    SectionHeader(stringResource(Res.string.noise_colors), quickSandFont)
+                }
+
+                items(noiseSounds, key = { it.second }) { (label, id) ->
+                    SoundCard(
+                        name = label,
+                        isSelected = state.selectedSoundKey == id,
                         fontFamily = quickSandFont,
-                        fontWeight = FontWeight.Bold,
-                        color = Mint,
-                        fontSize = 20.sp,
-                        modifier = Modifier.padding(top = 8.dp)
-                    )
+                        onClick = { onSoundPicked(id) }
+                    ) {
+                        GradientArt(resolveGradientColors(id, null)) { NoiseGlyph() }
+                    }
+                }
+
+                item(span = { GridItemSpan(maxLineSpan) }) {
+                    SectionHeader(stringResource(Res.string.your_sounds), quickSandFont)
                 }
 
                 items(state.customSounds, key = { it.id }) { sound ->
@@ -245,6 +261,37 @@ private fun SoundCard(
             maxLines = 1,
             overflow = TextOverflow.Ellipsis
         )
+    }
+}
+
+@Composable
+private fun SectionHeader(text: String, fontFamily: FontFamily) {
+    Text(
+        text = text,
+        fontFamily = fontFamily,
+        fontWeight = FontWeight.Bold,
+        color = Mint,
+        fontSize = 20.sp,
+        modifier = Modifier.padding(top = 8.dp)
+    )
+}
+
+/** A still row of bars standing in for artwork on the generated noise sounds. */
+@Composable
+private fun NoiseGlyph() {
+    Canvas(modifier = Modifier.size(width = 72.dp, height = 48.dp)) {
+        val heights = listOf(0.35f, 0.6f, 0.9f, 0.5f, 1f, 0.55f, 0.8f, 0.4f, 0.65f)
+        val slot = size.width / heights.size
+        val barWidth = slot * 0.5f
+        heights.forEachIndexed { i, level ->
+            val barHeight = size.height * level
+            drawRoundRect(
+                color = Color.White.copy(alpha = 0.85f),
+                topLeft = Offset(i * slot + (slot - barWidth) / 2f, (size.height - barHeight) / 2f),
+                size = Size(barWidth, barHeight),
+                cornerRadius = CornerRadius(barWidth / 2f)
+            )
+        }
     }
 }
 

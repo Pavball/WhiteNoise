@@ -10,6 +10,7 @@ import whitenoise.composeapp.generated.resources.ic_edit
 import whitenoise.composeapp.generated.resources.ic_home
 import whitenoise.composeapp.generated.resources.ic_notes
 import whitenoise.composeapp.generated.resources.ic_settings
+import whitenoise.composeapp.generated.resources.ic_volume
 
 sealed class Screens(val route: String, val title: String, val icon: @Composable () -> Painter) {
 
@@ -38,6 +39,13 @@ sealed class Screens(val route: String, val title: String, val icon: @Composable
             route = "add_sound",
             title = "Add Sound",
             icon = { painterResource(Res.drawable.ic_add) }
+        )
+
+    data object Mixer :
+        Screens(
+            route = "mixer",
+            title = "Mixer",
+            icon = { painterResource(Res.drawable.ic_volume) }
         )
 
     data object Options :

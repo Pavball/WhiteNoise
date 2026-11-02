@@ -5,7 +5,7 @@
     <!--SOUND-->
     <string name="add_custom_sound">Add your sound</string>
     <string name="add_sound">Add Sound</string>
-    <string name="add_sound_hint">Pick any audio file from your phone. It will loop just like the built-in sounds.</string>
+    <string name="add_sound_hint">Pick any audio file from your phone. Your sounds play one after another and start over after the last one.</string>
     <string name="choose_audio_file">Choose audio file</string>
     <string name="edit_sound_name">Edit Sound Name</string>
     <string name="select_sound">Choose sound</string>
@@ -15,7 +15,55 @@
     <string name="now_playing">Now playing</string>
     <string name="paused">Paused</string>
     <string name="loading">Loading…</string>
-    <string name="playback_error">Couldn\'t play this sound. The file may have been moved or deleted.</string>
+    <string name="playback_error">Couldn’t play this sound. The file may have been moved or deleted.</string>
+    <string name="nature_sounds">Nature</string>
+    <string name="noise_colors">Noise colors</string>
+    <string name="noise_white_hint">Bright and even, like a fan</string>
+    <string name="noise_pink_hint">Softer, like steady rain</string>
+    <string name="noise_brown_hint">Deep and rumbly, like a waterfall</string>
+
+    <!--MIXER-->
+    <string name="mixer">Mixer</string>
+    <string name="add">Add</string>
+    <string name="sound_mixer">Sound Mixer</string>
+    <string name="main_sound">Main sound</string>
+    <string name="layers">Layers</string>
+    <string name="layers_hint">Blend up to %1$d sounds on top of the main one.</string>
+    <string name="layers_full">That’s %1$d layers. Turn one down to add another.</string>
+    <string name="clear_layers">Clear</string>
+    <string name="mixes">Mixes</string>
+    <string name="save_mix">Save mix</string>
+    <string name="mix_name">Mix name</string>
+    <string name="delete_mix_confirm">Delete the mix “%1$s”?</string>
+    <string name="playing_with">with %1$s</string>
+    <string name="mix_stormy_night">Stormy Night</string>
+    <string name="mix_cosy_rain">Cosy Rain</string>
+    <string name="mix_deep_focus">Deep Focus</string>
+    <string name="mix_seaside">Seaside</string>
+
+    <!--TUTORIAL-->
+    <string name="got_it">Got it</string>
+    <string name="get_started">Get started</string>
+    <string name="show_tutorial">Show tutorial again</string>
+    <string name="show_tutorial_hint">The welcome pages and the White Noise tips</string>
+    <string name="tip_visualizer_title">Live sound waves</string>
+    <string name="tip_visualizer_text">The bars follow whatever is playing, and settle down as the sleep timer fades it out.</string>
+    <string name="tip_controls_title">Play and switch</string>
+    <string name="tip_controls_text">Start or pause here. The arrows jump to the previous or next sound.</string>
+    <string name="tip_mixer_title">Make your own mix</string>
+    <string name="tip_mixer_text">Layer rain, ocean, and white, pink or brown noise, set each volume, and save the mixes you like.</string>
+    <string name="tip_sounds_title">More sounds</string>
+    <string name="tip_sounds_text">Browse every sound here. Add brings in audio files from your phone.</string>
+    <string name="tip_timer_title">Sleep timer</string>
+    <string name="tip_timer_text">Pick how long to play. The sound fades out gently at the end, even with the screen off.</string>
+    <string name="onboarding_welcome_title">Welcome to Dozzze</string>
+    <string name="onboarding_welcome_text">Calming sounds, a gentle sleep routine and a quiet place for your thoughts.</string>
+    <string name="onboarding_sounds_title">Sounds your way</string>
+    <string name="onboarding_sounds_text">Rain, ocean, forest and three colors of noise. Blend them in the mixer to make your own.</string>
+    <string name="onboarding_timer_title">Drift off</string>
+    <string name="onboarding_timer_text">Set a sleep timer and the sound fades out once you’re asleep. It keeps playing with the screen off.</string>
+    <string name="onboarding_journal_title">Dreams and nights</string>
+    <string name="onboarding_journal_text">Write down your dreams, follow how you sleep, and breathe with short guided meditations.</string>
 
     <!--TIMER-->
     <string name="sleep_timer">Sleep timer</string>
@@ -123,6 +171,7 @@
 
     <!--PREFIX-->
     <string name="fade_out_last">Fade out last</string>
+    <string name="minutes_short">%1$d min</string>
     <string name="are_you_sure">Are you sure you want to delete</string>
 
 </resources>
